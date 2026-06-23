@@ -200,6 +200,54 @@
   .tag-soft{display:inline-block;font-size:10px;font-weight:700;color:var(--teal-01);background:var(--teal-03);background:rgba(78,218,208,.25);padding:3px 8px;border-radius:8px;margin-left:8px;vertical-align:middle}
   .banner{background:var(--purple-soft);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--purple-cta);display:flex;gap:10px;align-items:center;margin-bottom:14px}
   .banner .x{margin-left:auto;cursor:pointer;font-weight:700;opacity:.6}
+
+  /* ---------- Resource detail ---------- */
+  .res-detail{position:absolute;inset:0;background:var(--neutral);z-index:65;display:none;flex-direction:column;overflow-y:auto}
+  .res-detail.active{display:flex}
+  .rd-head{background:linear-gradient(135deg,var(--teal-01),var(--teal-02));color:#fff;padding:14px 18px 22px;position:relative;overflow:hidden}
+  .rd-head .bubble{position:absolute;border-radius:50% 50% 50% 4px;background:rgba(255,255,255,.10);width:90px;height:90px;top:-30px;right:-20px}
+  .rd-back{background:rgba(255,255,255,.18);border:none;color:#fff;font-weight:600;font-size:14px;padding:8px 12px;border-radius:10px;cursor:pointer;margin-bottom:14px;position:relative;z-index:1}
+  .rd-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;position:relative;z-index:1}
+  .rd-tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px}
+  .rd-tag.alt{background:rgba(255,255,255,.32)}
+  .rd-head h2{font-size:22px;line-height:1.25;position:relative;z-index:1}
+  .rd-head p{font-size:13px;opacity:.92;margin-top:4px;position:relative;z-index:1}
+  .rd-body{padding:18px 16px 60px}
+  .rd-lead{font-size:15px;line-height:1.55;margin-bottom:6px}
+  .rd-section{margin-top:20px}
+  .rd-section h3{font-size:15px;margin-bottom:6px}
+  .rd-section p{font-size:14px;line-height:1.55;color:#3f5a60}
+  .rd-steps{margin:6px 0 0 18px}
+  .rd-steps li{font-size:14px;line-height:1.5;margin-bottom:8px;color:#3f5a60}
+  .practice{background:var(--purple-soft);color:var(--purple-cta);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.5;margin-top:12px}
+  .disc{font-size:11.5px;color:#8aa0a6;line-height:1.5;margin-top:26px;border-top:1px solid #e0e6e9;padding-top:14px}
+  .saved-note{background:#e3f3ec;color:#0a7d5a;border-radius:12px;padding:13px 14px;font-weight:600;font-size:14px;text-align:center;margin-top:4px}
+
+  /* Breathing */
+  .breath-stage{display:flex;justify-content:center;align-items:center;height:240px;margin:10px 0 0}
+  .breath-ring{position:relative;width:210px;height:210px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:2px dashed #cfe3e2}
+  .breath-circle{position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 50% 38%,var(--teal-bright),var(--teal-02));transform:scale(1);box-shadow:0 10px 34px rgba(0,178,178,.4)}
+  .breath-label{position:relative;z-index:1;font-weight:700;color:#0c4b4b;font-size:16px}
+  .breath-count{text-align:center;font-size:13px;color:#8aa0a6;margin:14px 0}
+
+  /* Thought record / forms */
+  .tr-field{margin-bottom:14px}
+  .tr-field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .tr-field input[type=text],.tr-field input[type=time]{width:100%;border:1.5px solid #dde3e6;border-radius:12px;padding:11px;font-family:inherit;font-size:14px;color:var(--ink)}
+  .tr-rate{display:flex;align-items:center;gap:10px;font-size:12px;color:#8aa0a6;margin-top:8px}
+  .tr-rate input[type=range]{flex:1;accent-color:var(--teal-01)}
+  .tr-rate span{min-width:38px;text-align:right;font-weight:700;color:var(--teal-01)}
+
+  /* Accordion (courses) */
+  .acc-item{border:1px solid #e7ebee;border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff}
+  .acc-head{width:100%;background:#fff;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px;font-size:14px;font-weight:700;color:var(--ink);text-align:left;gap:10px}
+  .acc-head .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--teal-03);color:#0c4b4b;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .acc-head .t{flex:1}
+  .acc-head i{font-style:normal;color:var(--teal-01);font-size:22px;flex:none;transition:transform .2s;line-height:1}
+  .acc-item.open .acc-head i{transform:rotate(45deg)}
+  .acc-body{display:none;padding:0 14px 14px 50px}
+  .acc-item.open .acc-body{display:block}
+  .acc-body p{font-size:14px;line-height:1.55;color:#3f5a60}
 </style>
 </head>
 <body>
@@ -347,37 +395,14 @@
         <h2>Resource library</h2>
         <p class="sub">Clinician-vetted exercises and short courses — use them between sessions, at your own pace.</p>
       </div>
-      <div class="lib-cat">
-        <span class="chip sel">All</span>
-        <span class="chip">Sleep</span>
-        <span class="chip">Anxiety</span>
-        <span class="chip">Low mood</span>
-        <span class="chip">Stress</span>
-        <span class="chip">Routines</span>
+      <div class="lib-cat" id="libCats">
+        <span class="chip sel" onclick="filterLib(this,'All')">All</span>
+        <span class="chip" onclick="filterLib(this,'Sleep')">Sleep</span>
+        <span class="chip" onclick="filterLib(this,'Anxiety')">Anxiety</span>
+        <span class="chip" onclick="filterLib(this,'Low mood')">Low mood</span>
+        <span class="chip" onclick="filterLib(this,'Stress')">Stress</span>
       </div>
-
-      <div class="card" style="border-color:var(--purple-soft)">
-        <div class="res" style="border:none;margin:0;padding:0">
-          <div class="thumb" style="background:var(--purple-cta)">🎯</div>
-          <div><b>Intro to ACT</b><span>Suggested by your psychologist</span></div>
-          <span class="tag">Prescribed</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Micro-exercises · 2–5 min</h2>
-        <div class="res"><div class="thumb" style="background:var(--teal-02)">🫁</div><div><b>Box breathing</b><span>Grounding · 3 min</span></div></div>
-        <div class="res"><div class="thumb" style="background:var(--teal-01)">📝</div><div><b>Thought record</b><span>CBT · 5 min</span></div></div>
-        <div class="res"><div class="thumb" style="background:var(--teal-03)">⏰</div><div><b>"Worry time"</b><span>Anxiety · 4 min</span></div></div>
-      </div>
-
-      <div class="card">
-        <h2>Short courses</h2>
-        <div class="res"><div class="thumb" style="background:var(--teal-01)">🌙</div><div><b>7 days to better sleep</b><span>Sleep hygiene</span></div><span class="tag">Free</span></div>
-        <div class="res"><div class="thumb" style="background:var(--teal-02)">😰</div><div><b>Understanding & managing anxiety</b><span>CBT + ACT</span></div><span class="tag">Free</span></div>
-        <div class="res"><div class="thumb" style="background:var(--teal-02)">🍂</div><div><b>Getting through the winter slump</b><span>Seasonal</span></div><span class="tag">Free</span></div>
-        <div class="res"><div class="thumb" style="background:var(--teal-03)">🌿</div><div><b>Building healthy routines</b><span>Behavioural activation</span></div><span class="tag">Free</span></div>
-      </div>
+      <div id="libList"></div>
     </section>
 
     <!-- ---- ME / SUMMARY ---- -->
@@ -445,6 +470,18 @@
     <button class="closebtn" onclick="closeCrisis()">I'm safe — go back</button>
   </section>
 
+  <!-- ============ RESOURCE DETAIL ============ -->
+  <section id="resDetail" class="res-detail">
+    <header class="rd-head">
+      <div class="bubble"></div>
+      <button class="rd-back" onclick="closeRes()">‹ Back to library</button>
+      <div class="rd-meta" id="rdMeta"></div>
+      <h2 id="rdTitle"></h2>
+      <p id="rdSub"></p>
+    </header>
+    <div class="rd-body" id="rdBody"></div>
+  </section>
+
 </div>
 
 <script>
@@ -461,6 +498,7 @@ function startApp(){
   document.getElementById('main').style.display='block';
   document.getElementById('nav').style.display='flex';
   drawCharts();
+  renderLib('All');
 }
 function go(s){
   document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -583,6 +621,180 @@ function buildSummary(){
 /* ---------------- Crisis ---------------- */
 function openCrisis(){ document.getElementById('crisis').classList.add('active'); }
 function closeCrisis(){ document.getElementById('crisis').classList.remove('active'); }
+
+/* ================= RESOURCE LIBRARY ================= */
+function disc(){ return `<p class="disc">This is general wellbeing information and skills practice, not a substitute for personal advice or treatment. If something here brings up distress, it can help to talk it through with your MeHelp psychologist. If you ever feel unsafe, return to the home screen and tap "I'm not feeling safe right now", or call Lifeline on 13 11 14.</p>`; }
+function accordion(items){
+  return '<div class="acc">'+items.map((m,i)=>`
+    <div class="acc-item">
+      <button class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span class="n">${i+1}</span><span class="t">${m.t}</span><i>＋</i></button>
+      <div class="acc-body"><p>${m.body}</p>${m.practice?`<div class="practice"><b>Try this:</b> ${m.practice}</div>`:''}</div>
+    </div>`).join('')+'</div>';
+}
+function mockSave(btn,msg){ btn.outerHTML=`<div class="saved-note">✓ ${msg}</div>`; }
+
+const RES=[
+  /* ---- Prescribed ---- */
+  { id:'intro-act', prescribed:true, tag:'Prescribed', cats:['Anxiety','Low mood'], icon:'🎯', color:'var(--purple-cta)',
+    title:'Intro to ACT', sub:'Suggested by your psychologist', meta:'5 modules', tagline:'A gentle introduction to Acceptance & Commitment Therapy',
+    body:r=>`<p class="rd-lead">ACT helps you make room for difficult thoughts and feelings, while taking steps toward what matters to you. Your psychologist suggested this so you can get a feel for the ideas between sessions.</p>${accordion([
+      {t:'What ACT is', body:'ACT (said as one word, "act") is about psychological flexibility: noticing your thoughts and feelings without being ruled by them, and choosing actions that move you toward the life you want.', practice:'Notice one difficult thought today and silently add the words "I am having the thought that…" in front of it.'},
+      {t:'Your values', body:'Values are directions, not goals — the kind of person you want to be and what matters to you (connection, kindness, growth). They guide action even on hard days.', practice:'Name one value that matters to you, and one small thing that would express it today.'},
+      {t:'Unhooking from thoughts', body:'Thoughts are words and pictures the mind offers, not commands or facts. "Defusion" is the skill of seeing them as just that, so they pull you around less.', practice:'When a sticky thought shows up, thank your mind: "Thanks, mind, for that one."'},
+      {t:'Making room (acceptance)', body:'Fighting hard feelings often makes them louder. Acceptance means letting feelings be present while you keep doing what matters — not liking them, just no longer wrestling them.', practice:'Next time anxiety rises, try breathing around it for one minute rather than pushing it away.'},
+      {t:'Committed action', body:'Small, values-guided steps, taken regularly, build a meaningful life. It is fine to start tiny.', practice:'Pick one small action this week that a friend would say is "very you".'},
+    ])}${disc()}` },
+
+  /* ---- Micro-exercises ---- */
+  { id:'box-breathing', group:'exercise', tag:'Stress', cats:['Stress','Anxiety'], icon:'🫁', color:'var(--teal-02)',
+    title:'Box breathing', sub:'Grounding · 3 min', meta:'3 min', tagline:'Settle a racing body in a few slow breaths',
+    body:r=>`<p class="rd-lead">A simple breathing pattern for when stress or anxiety rises. You breathe in, hold, out, and hold — each for a count of four, like tracing the four sides of a box. Follow the circle.</p>
+      <div class="breath-stage"><div class="breath-ring"><div class="breath-circle" id="breathCircle"></div><span class="breath-label" id="breathLabel">Ready when you are</span></div></div>
+      <div class="breath-count">Completed rounds: <b id="breathCycle">0</b></div>
+      <button class="btn btn-teal" id="breathBtn" onclick="toggleBreath()">Start</button>
+      <div class="rd-section"><h3>How it helps</h3><p>Slow, even breathing gently nudges the body's "rest and digest" system, easing the racing heart and tight chest that come with stress. Aim for three or four rounds.</p></div>
+      <div class="rd-section"><h3>Use it anywhere</h3><p>Before a hard conversation, in the car, or in bed when your mind won't switch off. There's no wrong time.</p></div>${disc()}`,
+    init:()=>{ stopBreath(); } },
+
+  { id:'thought-record', group:'exercise', tag:'CBT', cats:['Anxiety','Low mood'], icon:'📝', color:'var(--teal-01)',
+    title:'Thought record', sub:'CBT · 5 min', meta:'5 min', tagline:'Look at an upsetting thought more fairly',
+    body:r=>`<p class="rd-lead">When you feel a strong emotion, the mind often jumps to a thought that feels like fact. A thought record helps you slow down and check it. Take it one box at a time — there are no wrong answers.</p>
+      <div class="tr-field"><label>1. The situation</label><textarea placeholder="What was happening? Where, when, who with?"></textarea></div>
+      <div class="tr-field"><label>2. How you felt</label><input type="text" placeholder="e.g. anxious, low, angry"><div class="tr-rate">Intensity <input type="range" min="0" max="100" value="60" oninput="this.nextElementSibling.textContent=this.value+'%'"><span>60%</span></div></div>
+      <div class="tr-field"><label>3. The automatic thought</label><textarea placeholder="What went through your mind?"></textarea></div>
+      <div class="tr-field"><label>4. Evidence it's true</label><textarea placeholder="Facts that support the thought"></textarea></div>
+      <div class="tr-field"><label>5. Evidence it might not be</label><textarea placeholder="Facts that don't fit, or other ways to see it"></textarea></div>
+      <div class="tr-field"><label>6. A more balanced thought</label><textarea placeholder="If a good friend were in this situation, what would you say to them?"></textarea></div>
+      <div class="tr-field"><label>7. How you feel now</label><div class="tr-rate">Intensity <input type="range" min="0" max="100" value="40" oninput="this.nextElementSibling.textContent=this.value+'%'"><span>40%</span></div></div>
+      <button class="btn btn-primary" onclick="mockSave(this,'Thought record saved to your notes')">Save to my notes</button>
+      <div class="rd-section"><h3>Why it works</h3><p>Thoughts are not facts. Writing one down and weighing the evidence creates a little space, so a balanced thought can take some of the heat out of the feeling.</p></div>${disc()}` },
+
+  { id:'worry-time', group:'exercise', tag:'Anxiety', cats:['Anxiety'], icon:'⏰', color:'var(--teal-03)',
+    title:'"Worry time"', sub:'Anxiety · 4 min', meta:'4 min', tagline:'Give worry a place to go, so it stops following you around',
+    body:r=>`<p class="rd-lead">Worry has a habit of turning up all day. "Worry time" takes back some control: instead of pushing worries away (which rarely works), you set aside one short, regular time to attend to them.</p>
+      <div class="rd-section"><h3>How to do it</h3><ol class="rd-steps">
+        <li>Pick a set 15-minute window each day, not too close to bedtime.</li>
+        <li>When a worry pops up during the day, jot it down and gently tell yourself you'll get to it at worry time.</li>
+        <li>At worry time, read your list. Some worries will have faded. For the rest, ask: can I act on this, or is it one to let be?</li>
+        <li>For ones you can act on, note one small next step. For the rest, practise letting them sit.</li>
+        <li>When the 15 minutes are up, close the list and return to your day.</li>
+      </ol></div>
+      <div class="tr-field"><label>Set your daily worry time</label><input type="time" value="18:30"></div>
+      <button class="btn btn-teal" onclick="mockSave(this,'Worry time set. We will keep it gentle.')">Set worry time</button>
+      <div class="rd-section"><h3>Why it works</h3><p>Postponing worry tells the brain the thought has somewhere to go, so it stops demanding attention right now. Over time, many worries lose their grip before worry time even arrives.</p></div>${disc()}` },
+
+  { id:'sleep-winddown', group:'exercise', tag:'Sleep', cats:['Sleep'], icon:'🌙', color:'var(--teal-01)',
+    title:'Sleep wind-down', sub:'Sleep hygiene · 5 min', meta:'5 min', tagline:'A short routine to help your body shift into sleep',
+    body:r=>`<p class="rd-lead">Sleep comes more easily when your body has a chance to change gears. This is a short, repeatable routine for the last 30 to 60 minutes before bed.</p>
+      <div class="rd-section"><h3>Tonight's wind-down</h3>
+      <div class="check-grid" style="grid-template-columns:1fr">
+      ${['Dim the lights about an hour before bed','Screens down, or switch to night mode','Something calming: a warm shower, tea, or a few pages of a book','Slow your breathing (try box breathing)','Same lights-out time as last night','Note tomorrow\'s worries on paper, then set them aside'].map(s=>`<div class="check" onclick="this.classList.toggle('sel')"><div class="bx"></div>${s}</div>`).join('')}
+      </div></div>
+      <div class="rd-section"><h3>The idea</h3><p>You're sending your body the same calming signals each night. Light, temperature and a familiar ritual all tell your internal clock that sleep is on the way.</p></div>${disc()}` },
+
+  /* ---- Short courses ---- */
+  { id:'sleep-course', group:'course', tag:'Free', cats:['Sleep'], icon:'😴', color:'var(--teal-01)',
+    title:'7 days to better sleep', sub:'Sleep hygiene · 7 days', meta:'7 days', tagline:'A week of small, evidence-based steps toward steadier sleep',
+    body:r=>`<p class="rd-lead">One short step a day for a week. You don't have to do them perfectly — just give each one a go and notice what helps.</p>${accordion([
+      {t:'Day 1 — Notice your sleep', body:'Before changing anything, get a simple baseline. For a few nights, note roughly when you went to bed, when you woke, and how rested you felt. Patterns are easier to shift once you can see them.', practice:'Tonight, jot down your bedtime and wake time. That\'s the whole task.'},
+      {t:'Day 2 — A steady wake-up time', body:'A consistent wake time is the strongest anchor for your body clock — even stronger than bedtime. Keeping it steady (including weekends) helps sleep fall into place.', practice:'Pick one wake-up time you can keep all week, and set the alarm.'},
+      {t:'Day 3 — Light by day, dark by night', body:'Daylight in the morning helps set your clock; dimmer light in the evening signals wind-down. This matters even more in the darker months.', practice:'Get 10 minutes of outdoor daylight in the morning, ideally before lunch.'},
+      {t:'Day 4 — The wind-down hour', body:'A predictable last hour helps your body change gears. Lower the lights, ease off screens, and do something calming.', practice:'Run the Sleep wind-down exercise tonight.'},
+      {t:'Day 5 — Caffeine, alcohol & the afternoon', body:'Caffeine can linger for 6+ hours, and while alcohol can make you drowsy it fragments sleep later in the night. Small timing tweaks can make a real difference.', practice:'Have your last caffeine before about 2pm today.'},
+      {t:'Day 6 — When you can\'t sleep', body:'Lying in bed frustrated teaches the brain that bed = being awake. If you\'re wide awake after about 20 minutes, get up, do something calm in low light, and return when sleepy.', practice:'If you\'re still awake after 20 minutes tonight, get up briefly rather than forcing it.'},
+      {t:'Day 7 — Your sleep plan', body:'Look back over the week. Which one or two changes helped most? Those become your keepers — the habits worth protecting.', practice:'Write down the two changes you\'ll keep, and one you\'ll let go.'},
+    ])}${disc()}` },
+
+  { id:'anxiety-course', group:'course', tag:'Free', cats:['Anxiety'], icon:'😰', color:'var(--teal-02)',
+    title:'Understanding & managing anxiety', sub:'CBT + ACT · 5 modules', meta:'5 modules', tagline:'How anxiety works, and practical skills to ease it',
+    body:r=>`<p class="rd-lead">Anxiety is common, treatable, and more understandable than it feels in the moment. This short course explains what's happening and gives you skills to practise.</p>${accordion([
+      {t:'What anxiety actually is', body:'Anxiety is your body\'s alarm system doing its job — preparing you for a threat with a faster heart, quicker breath and a busy mind. It\'s uncomfortable, but not dangerous, and it always passes.', practice:'Next time you feel it, name it: "This is my alarm system, not actual danger."'},
+      {t:'The anxiety cycle', body:'Avoiding what scares us brings instant relief, which teaches the brain that the thing really was dangerous — so the fear grows. Understanding this cycle is the first step to stepping out of it.', practice:'Notice one thing you\'ve been avoiding because of anxiety. Just notice it, no action needed yet.'},
+      {t:'Calming the body', body:'You can\'t think your way out of a racing body, but you can breathe your way toward calmer. Slow breathing and grounding bring the alarm down a notch.', practice:'Do one round of box breathing, then try the 5-4-3-2-1 senses grounding.'},
+      {t:'Thinking traps', body:'Anxiety exaggerates: catastrophising ("it\'ll be a disaster"), mind-reading, and black-and-white thinking. Spotting the trap loosens its hold.', practice:'Use the Thought record on one anxious thought from this week.'},
+      {t:'Facing it, gently', body:'Confidence grows by approaching fears in small, manageable steps rather than all at once. Each step you take teaches your brain that you can cope.', practice:'Choose the smallest possible first step toward something you\'ve been avoiding.'},
+    ])}${disc()}` },
+
+  { id:'winter-course', group:'course', tag:'Free', cats:['Low mood'], icon:'🍂', color:'var(--teal-02)',
+    title:'Getting through the winter slump', sub:'Seasonal · 5 modules', meta:'5 modules', tagline:'Spot a seasonal dip early and plan around it',
+    body:r=>`<p class="rd-lead">For some people, mood and energy dip as the days get shorter. It\'s real, it\'s common, and there\'s a lot you can do. This course helps you catch it early and plan ahead.</p>${accordion([
+      {t:'Why winter can flatten mood', body:'Less daylight can affect sleep, energy and mood, and for some people becomes a seasonal pattern. It\'s worth knowing women are diagnosed with seasonal affective patterns more often than men, so it\'s common and nothing to feel ashamed of.', practice:'Reflect: do you notice the same dip around the same time each year?'},
+      {t:'Catch it early', body:'Seasonal dips are easier to manage before they take hold. Tracking your mood as the days shorten gives you an early heads-up.', practice:'Keep up your daily check-ins through autumn — your mood and weather sit on the same timeline in the app.'},
+      {t:'Light and daylight', body:'Morning light is one of the most helpful tools. Getting outside, even on grey days, helps more than it seems.', practice:'Aim for a short walk in morning daylight, even 10 minutes.'},
+      {t:'Move and connect', body:'When energy drops, the instinct is to withdraw — but gentle movement and contact with people are two of the strongest lifts for low mood.', practice:'Plan one small thing with another person this week, however brief.'},
+      {t:'Plan ahead', body:'A seasonal plan beats waiting it out. That might include light exposure, movement, connection, and a chat with your GP about whether vitamin D is worth checking.', practice:'Write a three-line winter plan, and add one item to discuss with your psychologist or GP.'},
+    ])}${disc()}` },
+
+  { id:'routines-course', group:'course', tag:'Free', cats:['Low mood','Stress'], icon:'🌿', color:'var(--teal-03)',
+    title:'Building healthy routines', sub:'Behavioural activation · 5 modules', meta:'5 modules', tagline:'Small, steady routines that lift and stabilise mood',
+    body:r=>`<p class="rd-lead">When mood is low or stress is high, structure helps. This course is about building small routines that carry you on the days motivation doesn\'t show up.</p>${accordion([
+      {t:'Why routines steady mood', body:'Predictable rhythms — sleep, meals, movement, rest — take pressure off a tired mind. You spend less energy deciding, and more just doing.', practice:'Notice which part of your day already has a reliable rhythm. We\'ll build from there.'},
+      {t:'Anchor habits', body:'New habits stick best when attached to something you already do. "After I make coffee, I\'ll step outside for a minute" is easier to keep than a habit floating on its own.', practice:'Pick one existing daily habit and attach one tiny new action to it.'},
+      {t:'Behavioural activation', body:'Low mood says "wait until you feel like it" — but action usually comes before motivation, not after. Doing a small meaningful thing often lifts mood, which then makes the next thing easier.', practice:'Choose one small, rewarding activity and do it today, before you feel ready.'},
+      {t:'A rhythm for sleep and meals', body:'Regular sleep and meal times are quietly powerful. They steady energy and mood across the whole day.', practice:'Set a consistent wake-up time and one regular mealtime for this week.'},
+      {t:'Tiny habits that stick', body:'Start absurdly small — so small it feels easy. Tiny habits build momentum and self-trust, and they grow on their own.', practice:'Shrink one goal until it takes under two minutes, then do just that for a few days.'},
+    ])}${disc()}` },
+];
+
+function resRow(r){
+  return `<div class="res" onclick="openRes('${r.id}')"><div class="thumb" style="background:${r.color}">${r.icon}</div><div><b>${r.title}</b><span>${r.sub}</span></div><span class="tag">${r.tag}</span></div>`;
+}
+function renderLib(filter){
+  filter=filter||'All';
+  const m=r=> filter==='All'||r.cats.includes(filter);
+  const pres=RES.filter(r=>r.prescribed&&m(r));
+  const ex=RES.filter(r=>r.group==='exercise'&&m(r));
+  const co=RES.filter(r=>r.group==='course'&&m(r));
+  let h='';
+  if(pres.length) h+=`<div class="card" style="border-color:var(--purple-soft)">${pres.map(resRow).join('')}</div>`;
+  if(ex.length) h+=`<div class="card"><h2>Micro-exercises · 2–5 min</h2>${ex.map(resRow).join('')}</div>`;
+  if(co.length) h+=`<div class="card"><h2>Short courses</h2>${co.map(resRow).join('')}</div>`;
+  if(!h) h=`<div class="card"><p class="sub">Nothing in this category yet — try another.</p></div>`;
+  document.getElementById('libList').innerHTML=h;
+}
+function filterLib(el,cat){
+  document.querySelectorAll('#libCats .chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  renderLib(cat);
+}
+function openRes(id){
+  const r=RES.find(x=>x.id===id); if(!r) return;
+  document.getElementById('rdMeta').innerHTML=`${r.cats.map(c=>`<span class="rd-tag">${c}</span>`).join('')}<span class="rd-tag alt">${r.meta}</span>`;
+  document.getElementById('rdTitle').textContent=r.title;
+  document.getElementById('rdSub').textContent=r.tagline||'';
+  document.getElementById('rdBody').innerHTML=r.body(r);
+  const d=document.getElementById('resDetail'); d.classList.add('active'); d.scrollTop=0;
+  if(r.init) r.init();
+}
+function closeRes(){ stopBreath(); document.getElementById('resDetail').classList.remove('active'); }
+
+/* ---- Box breathing engine ---- */
+let breathTimer=null, breathRunning=false, breathPhase=0, breathCycles=0;
+const BREATH=[['Breathe in',4000,1.7],['Hold',4000,1.7],['Breathe out',4000,1],['Hold',4000,1]];
+function toggleBreath(){ breathRunning?stopBreath():startBreath(); }
+function startBreath(){ breathRunning=true; breathPhase=0; breathCycles=0; setBreathCount(); const b=document.getElementById('breathBtn'); if(b)b.textContent='Stop'; breathStep(); }
+function breathStep(){
+  if(!breathRunning) return;
+  const c=document.getElementById('breathCircle'), l=document.getElementById('breathLabel');
+  if(!c||!l) return;
+  const [label,ms,scale]=BREATH[breathPhase];
+  c.style.transition=`transform ${ms}ms ease-in-out`;
+  c.style.transform=`scale(${scale})`;
+  l.textContent=label;
+  breathTimer=setTimeout(()=>{
+    breathPhase=(breathPhase+1)%4;
+    if(breathPhase===0){ breathCycles++; setBreathCount(); }
+    breathStep();
+  }, ms);
+}
+function stopBreath(){
+  breathRunning=false; clearTimeout(breathTimer);
+  const c=document.getElementById('breathCircle'), l=document.getElementById('breathLabel'), b=document.getElementById('breathBtn');
+  if(c){ c.style.transition='transform .6s ease'; c.style.transform='scale(1)'; }
+  if(l) l.textContent='Ready when you are';
+  if(b) b.textContent='Start';
+}
+function setBreathCount(){ const el=document.getElementById('breathCycle'); if(el) el.textContent=breathCycles; }
 </script>
 </body>
 </html>
