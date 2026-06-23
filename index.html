@@ -286,6 +286,9 @@
   .cb-flag{display:flex;gap:10px;align-items:flex-start;background:#fff6ec;border:1px solid #ffe2b8;border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.45}
   .cb-row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:9px 0;border-bottom:1px solid #eef1f3}
   .cb-row b{font-weight:700;text-align:right}
+  .note-box{background:var(--neutral);border-left:4px solid var(--teal-03);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#3f5a60;margin-bottom:16px}
+  .note-box b{color:var(--ink)}
+  .note-box.clin{border-left-color:var(--purple-cta);background:#f5f2fb}
 </style>
 </head>
 <body>
@@ -937,7 +940,8 @@ function openK10(){ renderK10form(); const d=document.getElementById('k10'); d.c
 function closeK10(){ document.getElementById('k10').classList.remove('active'); }
 function selK10(qi,v){ k10State[qi]=v; renderK10form(); }
 function renderK10form(){
-  let h=`<p class="rd-lead">In the past 4 weeks, about how often did you feel… <br><span class="sub">Sample answers are pre-filled so you can see how scoring works — tap any to change.</span></p>`;
+  let h=`<div class="note-box"><b>Why we ask this.</b> These ten questions are a standard check used right across Australian mental health care. A few sound heavy — that's normal, and there are no wrong answers. It takes about two minutes, and it lets you and your psychologist see how things are shifting over time. Your answers are private and yours.</div>
+    <p class="rd-lead">In the past 4 weeks, about how often did you feel… <br><span class="sub">Sample answers are pre-filled so you can see how scoring works — tap any to change.</span></p>`;
   h+=K10Q.map((q,qi)=>`<div class="k10-q"><p>${qi+1}. …${q}?</p><div class="k10-opts">${K10OPT.map((o,oi)=>`<div class="k10-opt ${k10State[qi]===oi+1?'sel':''}" onclick="selK10(${qi},${oi+1})"><b>${oi+1}</b>${o}</div>`).join('')}</div></div>`).join('');
   h+=`<button class="btn btn-primary" style="margin-top:18px" onclick="submitK10()">See my result</button>
     <p class="disc">The K10 is a widely used screening measure of psychological distress, not a diagnosis. Your psychologist reads it alongside everything else.</p>`;
@@ -968,6 +972,7 @@ function renderClinician(){
   const last=k10History[k10History.length-1].score, lb=k10Band(last);
   const spark=k10History.map(x=>`<i style="height:${(x.score/50)*100}%"></i>`).join('');
   document.getElementById('clinBody').innerHTML=`
+    <div class="note-box clin"><b>How to read this (30 seconds).</b> Scan the K10 direction of travel first, then the flags. The confidence labels and data-quality score tell you how much weight to give each pattern. It's context to open the conversation, not a diagnostic output.</div>
     <div class="dq"><div class="bar"><i style="width:86%"></i></div><span class="pct">86%</span></div>
     <p class="sub">Based on 12 of 14 days. De-identified. Shared only with the client's consent.</p>
     <div class="cb-block"><h3>K10 trajectory</h3><div class="spark">${spark}</div>
