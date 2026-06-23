@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MeHelp Insights — Prototype</title>
+<style>
+  :root{
+    --teal-01:#0A9292; --teal-02:#00B2B2; --teal-03:#4EDAD0; --teal-bright:#60EBDB;
+    --purple-cta:#633BA5; --purple-soft:#E0D8ED;
+    --neutral:#EFF1F3; --ink:#314B51;
+    --white:#ffffff;
+    --good:#0A9292; --warn:#E0A100; --bad:#C9523F;
+    --shadow:0 6px 24px rgba(49,75,81,.10);
+    --shadow-sm:0 2px 8px rgba(49,75,81,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--neutral); color:var(--ink); -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center;
+  }
+  /* Phone-style frame so it demos cleanly on desktop, but responsive */
+  .device{
+    width:100%; max-width:430px; min-height:100vh; background:var(--white);
+    position:relative; display:flex; flex-direction:column;
+    box-shadow:0 0 60px rgba(49,75,81,.12);
+  }
+  @media(min-width:600px){ .device{min-height:880px; margin:24px 0; border-radius:32px; overflow:hidden} body{align-items:flex-start} }
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    background:linear-gradient(135deg,var(--teal-01),var(--teal-02));
+    color:#fff; padding:18px 20px 22px; position:relative; overflow:hidden;
+  }
+  header.topbar .bubble{position:absolute;border-radius:50% 50% 50% 4px;background:rgba(255,255,255,.10)}
+  header.topbar .b1{width:90px;height:90px;top:-30px;right:-20px}
+  header.topbar .b2{width:46px;height:46px;bottom:-14px;right:60px;background:rgba(255,255,255,.08)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:.2px;position:relative;z-index:1}
+  .brand .logo{width:30px;height:30px;background:#fff;border-radius:50% 50% 50% 4px;display:flex;align-items:center;justify-content:center;color:var(--teal-01);font-weight:800;font-size:16px}
+  .brand small{font-weight:500;opacity:.85;font-size:12px;display:block;margin-top:1px}
+  .greet{margin-top:14px;position:relative;z-index:1}
+  .greet h1{font-size:22px;font-weight:700}
+  .greet p{opacity:.9;font-size:13px;margin-top:3px}
+
+  /* ---------- Screen container ---------- */
+  main{flex:1;overflow-y:auto;padding:18px 16px 96px}
+  .screen{display:none;animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- Cards ---------- */
+  .card{background:#fff;border:1px solid #e7ebee;border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+  .card h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:#7d949a;margin-bottom:12px;font-weight:700}
+  .card .sub{font-size:12px;color:#8aa0a6}
+
+  .row{display:flex;gap:12px}
+  .row > *{flex:1}
+
+  /* Mood today big */
+  .mood-today{display:flex;align-items:center;gap:14px}
+  .mood-emoji{font-size:42px;line-height:1}
+  .mood-meta b{font-size:17px;display:block}
+  .mood-meta span{font-size:12px;color:#8aa0a6}
+
+  /* Stat tiles */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .tile{background:#fff;border:1px solid #e7ebee;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm)}
+  .tile .ico{font-size:20px}
+  .tile .val{font-size:22px;font-weight:700;margin-top:6px}
+  .tile .lbl{font-size:12px;color:#8aa0a6;margin-top:2px}
+
+  /* Chart */
+  .chart-wrap{width:100%}
+  svg.chart{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#8aa0a6}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  /* Insight item */
+  .insight{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--neutral);margin-bottom:10px}
+  .insight .dot{width:34px;height:34px;flex:none;border-radius:50% 50% 50% 4px;background:var(--teal-03);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .insight p{font-size:14px;line-height:1.45}
+  .insight.warn .dot{background:#ffe2a8}
+
+  /* Weather */
+  .weather{display:flex;align-items:center;gap:14px}
+  .weather .wx{font-size:36px}
+  .weather b{font-size:16px}
+  .weather span{font-size:12px;color:#8aa0a6;display:block}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-weight:700;font-size:15px;border-radius:14px;padding:14px 18px;width:100%;transition:transform .06s,box-shadow .2s}
+  .btn:active{transform:scale(.985)}
+  .btn-primary{background:var(--purple-cta);color:#fff;box-shadow:0 6px 16px rgba(99,59,165,.28)}
+  .btn-teal{background:var(--teal-01);color:#fff}
+  .btn-ghost{background:#fff;color:var(--teal-01);border:1.5px solid var(--teal-03)}
+  .btn-soft{background:var(--purple-soft);color:var(--purple-cta)}
+  .btn.small{width:auto;padding:10px 14px;font-size:13px}
+
+  /* ---------- Bottom nav ---------- */
+  nav.bottom{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e7ebee;display:flex;justify-content:space-around;align-items:center;padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:20}
+  nav.bottom button{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#9fb1b6;font-size:10.5px;font-weight:600;padding:6px 10px;border-radius:12px;flex:1}
+  nav.bottom button .ni{font-size:20px}
+  nav.bottom button.active{color:var(--teal-01)}
+  nav.bottom .fab{flex:none}
+  nav.bottom .fab button{background:var(--purple-cta);color:#fff;width:54px;height:54px;border-radius:50% 50% 50% 6px;justify-content:center;margin-top:-22px;box-shadow:0 8px 18px rgba(99,59,165,.35)}
+  nav.bottom .fab button .ni{font-size:26px;color:#fff}
+  nav.bottom .fab button span:last-child{display:none}
+
+  /* ---------- Welcome ---------- */
+  #welcome{position:absolute;inset:0;background:linear-gradient(160deg,var(--teal-01),var(--teal-02) 55%,var(--teal-03));z-index:50;color:#fff;display:flex;flex-direction:column;padding:32px 26px;overflow:hidden}
+  #welcome .wb{position:absolute;border-radius:50% 50% 50% 8px;background:rgba(255,255,255,.10)}
+  #welcome .logo-lg{width:64px;height:64px;background:#fff;border-radius:50% 50% 50% 8px;display:flex;align-items:center;justify-content:center;color:var(--teal-01);font-weight:800;font-size:30px;margin-bottom:auto;position:relative;z-index:1}
+  #welcome .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.85;margin-bottom:10px;position:relative;z-index:1}
+  #welcome h1{font-size:29px;line-height:1.25;font-weight:700;position:relative;z-index:1}
+  #welcome .lead{font-size:15px;opacity:.94;margin-top:14px;line-height:1.55;position:relative;z-index:1}
+  #welcome .pills{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 26px;position:relative;z-index:1}
+  #welcome .pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:8px 12px;border-radius:20px;font-size:12.5px;font-weight:600}
+  #welcome .foot{position:relative;z-index:1}
+  #welcome .foot .note{text-align:center;font-size:11.5px;opacity:.85;margin-top:12px}
+
+  /* Check-in flow */
+  .modal{position:absolute;inset:0;background:rgba(49,75,81,.4);z-index:60;display:none;align-items:flex-end}
+  .modal.active{display:flex}
+  .sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:20px 18px 26px;max-height:94%;overflow-y:auto;animation:rise .28s ease}
+  @keyframes rise{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet .grab{width:42px;height:5px;background:#dde3e6;border-radius:3px;margin:0 auto 14px}
+  .step h3{font-size:20px;margin-bottom:4px}
+  .step .q-sub{font-size:13px;color:#8aa0a6;margin-bottom:18px}
+  .progress-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+  .progress-dots i{width:7px;height:7px;border-radius:50%;background:#dde3e6}
+  .progress-dots i.on{background:var(--teal-02);width:20px;border-radius:4px}
+
+  .mood-scale{display:flex;justify-content:space-between;gap:6px;margin-bottom:8px}
+  .mood-opt{flex:1;cursor:pointer;text-align:center;padding:10px 2px;border-radius:14px;border:2px solid transparent;transition:.15s}
+  .mood-opt .e{font-size:30px}
+  .mood-opt .t{font-size:10px;color:#8aa0a6;margin-top:4px}
+  .mood-opt.sel{background:var(--neutral);border-color:var(--teal-03)}
+  .scale-row{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{cursor:pointer;border:1.5px solid #dde3e6;background:#fff;padding:9px 14px;border-radius:12px;font-size:14px;font-weight:600;color:var(--ink)}
+  .chip.sel{background:var(--teal-01);color:#fff;border-color:var(--teal-01)}
+  .check-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .check{cursor:pointer;border:1.5px solid #dde3e6;border-radius:12px;padding:11px 12px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .check.sel{background:var(--purple-soft);border-color:var(--purple-cta);color:var(--purple-cta)}
+  .check .bx{width:18px;height:18px;border:2px solid #c4ccd0;border-radius:6px;flex:none}
+  .check.sel .bx{background:var(--purple-cta);border-color:var(--purple-cta);position:relative}
+  .check.sel .bx::after{content:"✓";color:#fff;font-size:12px;position:absolute;top:-3px;left:2px}
+  textarea{width:100%;border:1.5px solid #dde3e6;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;resize:vertical;min-height:70px}
+  input[type=range]{width:100%;accent-color:var(--teal-01)}
+  .range-val{font-size:30px;font-weight:700;text-align:center;color:var(--teal-01)}
+  .sheet-actions{display:flex;gap:10px;margin-top:20px}
+  .sheet-actions .btn{flex:1}
+
+  /* confirmation */
+  .done-screen{text-align:center;padding:20px 6px}
+  .done-screen .big{font-size:54px}
+  .done-screen h3{font-size:22px;margin:10px 0 6px}
+  .done-screen p{font-size:14px;color:#8aa0a6;line-height:1.5;margin-bottom:20px}
+
+  /* Library */
+  .lib-cat{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px}
+  .lib-cat .chip{flex:none}
+  .res{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid #e7ebee;border-radius:14px;margin-bottom:10px;cursor:pointer}
+  .res .thumb{width:46px;height:46px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff}
+  .res b{font-size:14px;display:block}
+  .res span{font-size:12px;color:#8aa0a6}
+  .res .tag{font-size:10px;font-weight:700;color:var(--purple-cta);background:var(--purple-soft);padding:2px 7px;border-radius:8px;margin-left:auto;flex:none}
+
+  /* Summary / export */
+  .summary-doc{background:#fff;border:1px solid #e7ebee;border-radius:14px;padding:18px}
+  .summary-doc .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--teal-03);padding-bottom:12px;margin-bottom:14px}
+  .summary-doc .head h3{font-size:16px}
+  .summary-doc .head .deid{font-size:10px;background:var(--neutral);padding:3px 8px;border-radius:8px;color:#8aa0a6;font-weight:700}
+  .kvs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .kv{background:var(--neutral);border-radius:12px;padding:10px}
+  .kv .k{font-size:11px;color:#8aa0a6}
+  .kv .v{font-size:18px;font-weight:700}
+  .pat-list li{font-size:13px;margin:7px 0 7px 18px;line-height:1.4}
+
+  /* Crisis */
+  #crisis{position:absolute;inset:0;background:linear-gradient(160deg,#3a2b52,#633BA5);z-index:70;color:#fff;display:none;flex-direction:column;padding:30px 24px;overflow-y:auto}
+  #crisis.active{display:flex}
+  #crisis .heart{font-size:46px;margin-bottom:8px}
+  #crisis h2{font-size:24px;line-height:1.25}
+  #crisis p{font-size:14px;opacity:.92;line-height:1.55;margin-top:12px}
+  #crisis .crisis-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:16px;margin-top:16px}
+  #crisis .crisis-card .num{font-size:22px;font-weight:800}
+  #crisis .crisis-card .lbl{font-size:12.5px;opacity:.9}
+  #crisis .call{display:block;width:100%;text-align:center;background:#fff;color:var(--purple-cta);font-weight:800;padding:15px;border-radius:14px;margin-top:12px;text-decoration:none;font-size:16px}
+  #crisis .call.em{background:#C9523F;color:#fff}
+  #crisis .disclaimer{font-size:11.5px;opacity:.8;margin-top:18px;line-height:1.5}
+  #crisis .closebtn{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:12px;padding:12px;margin-top:18px;font-weight:600;cursor:pointer}
+
+  .helpline{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:11px;color:#9fb1b6;padding:6px;pointer-events:none}
+  .footer-link{text-align:center;margin:6px 0 4px}
+  .footer-link button{background:none;border:none;color:#b08; color:var(--purple-cta);font-size:12px;text-decoration:underline;cursor:pointer;font-weight:600}
+
+  .tag-soft{display:inline-block;font-size:10px;font-weight:700;color:var(--teal-01);background:var(--teal-03);background:rgba(78,218,208,.25);padding:3px 8px;border-radius:8px;margin-left:8px;vertical-align:middle}
+  .banner{background:var(--purple-soft);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--purple-cta);display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .banner .x{margin-left:auto;cursor:pointer;font-weight:700;opacity:.6}
+</style>
+</head>
+<body>
+<div class="device">
+
+  <!-- ============ WELCOME ============ -->
+  <section id="welcome">
+    <div class="wb" style="width:140px;height:140px;top:-40px;right:-40px"></div>
+    <div class="wb" style="width:70px;height:70px;bottom:120px;left:-20px;background:rgba(255,255,255,.08)"></div>
+    <div class="logo-lg">M</div>
+    <p class="eyebrow">Welcome to MeHelp Insights</p>
+    <h1>See what's really shaping how you feel.</h1>
+    <p class="lead">Track your mood, sleep and the everyday in a few taps a day, and start to see the patterns behind how you feel, so you and your psychologist can focus on what matters most.</p>
+    <div class="pills">
+      <span class="pill">💛 Free to use</span>
+      <span class="pill">🔒 Private, and always yours</span>
+      <span class="pill">💬 Guided by real psychologists</span>
+      <span class="pill">🌱 Go at your own pace</span>
+    </div>
+    <div class="foot">
+      <button class="btn btn-primary" onclick="startApp()">Get started</button>
+      <p class="note">There's no pressure to keep up. Use it whenever it helps, and you're always welcome back.</p>
+    </div>
+  </section>
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar" id="topbar" style="display:none">
+    <div class="bubble b1"></div><div class="bubble b2"></div>
+    <div class="brand">
+      <div class="logo">M</div>
+      <div>MeHelp Insights<small id="bar-sub">Your wellbeing companion</small></div>
+    </div>
+    <div class="greet" id="greet">
+      <h1>Good afternoon, Sam 👋</h1>
+      <p id="greet-sub">Day 12 of your check-ins · 2 week wait until your first session</p>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main id="main" style="display:none">
+
+    <!-- ---- HOME / DASHBOARD ---- -->
+    <section class="screen active" id="home">
+      <div class="banner" id="pilot-banner">
+        💡 You've logged 9 days. Tap an insight below — patterns are starting to show.
+        <span class="x" onclick="this.parentElement.style.display='none'">✕</span>
+      </div>
+
+      <div class="card">
+        <h2>Today</h2>
+        <div class="mood-today" id="today-mood">
+          <div class="mood-emoji">🙂</div>
+          <div class="mood-meta">
+            <b>Feeling okay — 6/10</b>
+            <span>Logged at 9:14am</span>
+          </div>
+          <button class="btn btn-soft small" style="flex:none" onclick="openCheckin()">Update</button>
+        </div>
+      </div>
+
+      <div class="tiles">
+        <div class="tile"><div class="ico">😴</div><div class="val">6.4h</div><div class="lbl">Avg sleep (7d)</div></div>
+        <div class="tile"><div class="ico">🏃</div><div class="val">3 days</div><div class="lbl">Moved this week</div></div>
+        <div class="tile"><div class="ico">🌡️</div><div class="val">5.1/10</div><div class="lbl">Avg stress (7d)</div></div>
+        <div class="tile"><div class="ico">🙂</div><div class="val">6.0/10</div><div class="lbl">Avg mood (7d)</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Mood — last 14 days</h2>
+        <div class="chart-wrap" id="moodChart"></div>
+        <div class="legend"><span><i style="background:var(--teal-01)"></i>Mood (1–10)</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Sleep vs mood</h2>
+        <div class="chart-wrap" id="sleepChart"></div>
+        <div class="legend">
+          <span><i style="background:var(--teal-03)"></i>Hours slept</span>
+          <span><i style="background:var(--purple-cta)"></i>Mood</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Weather today <span class="tag-soft">auto</span></h2>
+        <div class="weather">
+          <div class="wx">⛅</div>
+          <div>
+            <b>16°C · Overcast · Melbourne</b>
+            <span>9h 12m daylight · pressure 1014 hPa</span>
+          </div>
+        </div>
+        <p class="sub" style="margin-top:12px">Daylight is getting shorter. We track this alongside your mood to spot seasonal patterns early.</p>
+      </div>
+
+      <div class="footer-link"><button onclick="openCrisis()">I'm not feeling safe right now</button></div>
+    </section>
+
+    <!-- ---- INSIGHTS ---- -->
+    <section class="screen" id="insights">
+      <div class="card">
+        <h2>What we're noticing</h2>
+        <p class="sub" style="margin-bottom:14px">Plain-language observations from your own data — these are patterns to reflect on, not diagnoses.</p>
+        <div class="insight">
+          <div class="dot">📅</div>
+          <p><b>Mondays are hardest.</b> Your mood is lowest on Monday mornings — about 2 points below your week average.</p>
+        </div>
+        <div class="insight warn">
+          <div class="dot">😴</div>
+          <p><b>Sleep is driving a lot of this.</b> On days you slept under 6 hours, your stress was about 3 points higher.</p>
+        </div>
+        <div class="insight">
+          <div class="dot">🏃</div>
+          <p><b>Movement lifts you.</b> You moved 3 days this week and your mood was higher on each of those days.</p>
+        </div>
+        <div class="insight">
+          <div class="dot">☀️</div>
+          <p><b>A seasonal dip may be starting.</b> Your mood has trended down as daylight has dropped over the past 2 weeks.</p>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--neutral);border:none">
+        <h2>Could physical health be a factor?</h2>
+        <p class="sub" style="color:var(--ink);line-height:1.5">Low vitamin D, iron, B12 or thyroid issues can mimic anxiety and low mood. This is optional — and never replaces care.</p>
+        <button class="btn btn-ghost" style="margin-top:14px" onclick="alert('Prototype: opens the optional health questionnaire & blood-result entry (vitamin D, iron/ferritin, B12, folate, thyroid).')">Explore the health layer</button>
+      </div>
+
+      <div class="card">
+        <h2>Suggested for you <span class="tag-soft">from your data</span></h2>
+        <div class="res" onclick="go('library')">
+          <div class="thumb" style="background:var(--teal-01)">🌙</div>
+          <div><b>7 days to better sleep</b><span>Because your sleep has dipped this week</span></div>
+          <span class="tag">Course</span>
+        </div>
+        <div class="res" onclick="go('library')">
+          <div class="thumb" style="background:var(--teal-02)">🍂</div>
+          <div><b>Getting through the winter slump</b><span>Seasonal · matched to shorter daylight</span></div>
+          <span class="tag">Course</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- LIBRARY ---- -->
+    <section class="screen" id="library">
+      <div class="card" style="margin-bottom:14px">
+        <h2>Resource library</h2>
+        <p class="sub">Clinician-vetted exercises and short courses — use them between sessions, at your own pace.</p>
+      </div>
+      <div class="lib-cat">
+        <span class="chip sel">All</span>
+        <span class="chip">Sleep</span>
+        <span class="chip">Anxiety</span>
+        <span class="chip">Low mood</span>
+        <span class="chip">Stress</span>
+        <span class="chip">Routines</span>
+      </div>
+
+      <div class="card" style="border-color:var(--purple-soft)">
+        <div class="res" style="border:none;margin:0;padding:0">
+          <div class="thumb" style="background:var(--purple-cta)">🎯</div>
+          <div><b>Intro to ACT</b><span>Suggested by your psychologist</span></div>
+          <span class="tag">Prescribed</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Micro-exercises · 2–5 min</h2>
+        <div class="res"><div class="thumb" style="background:var(--teal-02)">🫁</div><div><b>Box breathing</b><span>Grounding · 3 min</span></div></div>
+        <div class="res"><div class="thumb" style="background:var(--teal-01)">📝</div><div><b>Thought record</b><span>CBT · 5 min</span></div></div>
+        <div class="res"><div class="thumb" style="background:var(--teal-03)">⏰</div><div><b>"Worry time"</b><span>Anxiety · 4 min</span></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Short courses</h2>
+        <div class="res"><div class="thumb" style="background:var(--teal-01)">🌙</div><div><b>7 days to better sleep</b><span>Sleep hygiene</span></div><span class="tag">Free</span></div>
+        <div class="res"><div class="thumb" style="background:var(--teal-02)">😰</div><div><b>Understanding & managing anxiety</b><span>CBT + ACT</span></div><span class="tag">Free</span></div>
+        <div class="res"><div class="thumb" style="background:var(--teal-02)">🍂</div><div><b>Getting through the winter slump</b><span>Seasonal</span></div><span class="tag">Free</span></div>
+        <div class="res"><div class="thumb" style="background:var(--teal-03)">🌿</div><div><b>Building healthy routines</b><span>Behavioural activation</span></div><span class="tag">Free</span></div>
+      </div>
+    </section>
+
+    <!-- ---- ME / SUMMARY ---- -->
+    <section class="screen" id="me">
+      <div class="card">
+        <h2>Your progress summary</h2>
+        <p class="sub" style="margin-bottom:14px">Generate a summary for any period and share it with your psychologist, GP, or anyone you choose. <b>This is your data — there's no automatic sharing.</b></p>
+        <div class="scale-row" style="margin-bottom:14px">
+          <span class="chip" onclick="setRange(this,14)">Last 14 days</span>
+          <span class="chip sel" onclick="setRange(this,30)">Last 30 days</span>
+          <span class="chip" onclick="setRange(this,60)">Last 60 days</span>
+        </div>
+        <button class="btn btn-primary" onclick="buildSummary()">Generate summary (PDF)</button>
+      </div>
+
+      <div id="summaryOut"></div>
+
+      <div class="card">
+        <h2>Privacy & data</h2>
+        <div class="res" style="cursor:default"><div class="thumb" style="background:var(--teal-01)">🔒</div><div><b>You own your data</b><span>Export or delete anytime · stored in Australia</span></div></div>
+        <div class="res" style="cursor:default"><div class="thumb" style="background:var(--teal-02)">📄</div><div><b>De-identified summaries</b><span>Usable anywhere you choose</span></div></div>
+        <div class="res" style="cursor:default"><div class="thumb" style="background:var(--teal-03)">🚫</div><div><b>Not a monitoring service</b><span>We never share without you</span></div></div>
+      </div>
+
+      <div class="footer-link"><button onclick="openCrisis()">Crisis support & safety info</button></div>
+    </section>
+
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="bottom" id="nav" style="display:none">
+    <button class="active" data-s="home" onclick="go('home')"><span class="ni">🏠</span><span>Home</span></button>
+    <button data-s="insights" onclick="go('insights')"><span class="ni">📊</span><span>Insights</span></button>
+    <div class="fab"><button onclick="openCheckin()"><span class="ni">＋</span><span>Check-in</span></button></div>
+    <button data-s="library" onclick="go('library')"><span class="ni">📚</span><span>Library</span></button>
+    <button data-s="me" onclick="go('me')"><span class="ni">👤</span><span>Me</span></button>
+  </nav>
+
+  <!-- ============ CHECK-IN SHEET ============ -->
+  <div class="modal" id="checkin">
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <!-- ============ CRISIS ============ -->
+  <section id="crisis">
+    <div class="heart">💜</div>
+    <h2>It sounds like things are really hard right now.</h2>
+    <p>You don't have to get through this alone. MeHelp Insights isn't a crisis or monitoring service — but help is available right now.</p>
+
+    <a class="call em" href="tel:000">📞 Call 000 — if you're in immediate danger</a>
+
+    <div class="crisis-card">
+      <div class="num">📞 13 11 14</div>
+      <div class="lbl">Lifeline — 24/7 crisis support</div>
+    </div>
+    <div class="crisis-card">
+      <div class="num">📞 1300 22 4636</div>
+      <div class="lbl">Beyond Blue — support line</div>
+    </div>
+
+    <a class="call" href="#" onclick="alert('Prototype: opens a pathway to speak with a MeHelp psychologist.');return false">💬 Speak with a MeHelp psychologist</a>
+
+    <p class="disclaimer">MeHelp Insights is a psychology support and insight tool. It is not monitored in real time and is not an emergency service. If you are in danger, please call 000.</p>
+
+    <button class="closebtn" onclick="closeCrisis()">I'm safe — go back</button>
+  </section>
+
+</div>
+
+<script>
+/* ---------------- Sample data (14 days) ---------------- */
+const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const mood  = [4,5,6,6,7,7,6, 4,5,6,5,6,7,6];      // Monday dips, weekend lift
+const sleep = [5.2,6,6.5,6.2,7,7.5,7, 5,5.8,6.4,5.5,6.4,7.2,6.8];
+const stress= [7,6,5,5,4,4,5, 7,6,5,6,5,4,5];
+
+/* ---------------- Navigation ---------------- */
+function startApp(){
+  document.getElementById('welcome').style.display='none';
+  document.getElementById('topbar').style.display='block';
+  document.getElementById('main').style.display='block';
+  document.getElementById('nav').style.display='flex';
+  drawCharts();
+}
+function go(s){
+  document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
+  document.getElementById(s).classList.add('active');
+  document.querySelectorAll('nav.bottom button[data-s]').forEach(b=>b.classList.toggle('active', b.dataset.s===s));
+  document.getElementById('main').scrollTop=0;
+  if(s==='home') drawCharts();
+}
+
+/* ---------------- Charts (inline SVG) ---------------- */
+function lineChart(el, data, color, max){
+  const W=360,H=130,pad=22;
+  const min=0; max=max||10;
+  const stepX=(W-pad*2)/(data.length-1);
+  const y=v=>H-pad-((v-min)/(max-min))*(H-pad*2);
+  let pts=data.map((v,i)=>`${pad+i*stepX},${y(v)}`).join(' ');
+  let dots=data.map((v,i)=>`<circle cx="${pad+i*stepX}" cy="${y(v)}" r="3" fill="${color}"/>`).join('');
+  let grid=[0,2.5,5,7.5,10].map(g=>`<line x1="${pad}" x2="${W-pad}" y1="${y(g)}" y2="${y(g)}" stroke="#eef1f3"/>`).join('');
+  let labels=days.map((d,i)=> i%2===0?`<text x="${pad+i*stepX}" y="${H-4}" font-size="8" fill="#aab8bc" text-anchor="middle">${d}</text>`:'').join('');
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}">${grid}<polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${dots}${labels}</svg>`;
+}
+function dualChart(el){
+  const W=360,H=140,pad=24, bw=12;
+  const stepX=(W-pad*2)/(sleep.length-1);
+  const ys=v=>H-pad-(v/9)*(H-pad*2);          // sleep up to ~9h
+  const ym=v=>H-pad-(v/10)*(H-pad*2);         // mood 0-10
+  let bars=sleep.map((v,i)=>{const x=pad+i*stepX-bw/2;const h=(H-pad)-ys(v);return `<rect x="${x}" y="${ys(v)}" width="${bw}" height="${h}" rx="3" fill="var(--teal-03)"/>`}).join('');
+  let pts=mood.map((v,i)=>`${pad+i*stepX},${ym(v)}`).join(' ');
+  let dots=mood.map((v,i)=>`<circle cx="${pad+i*stepX}" cy="${ym(v)}" r="3" fill="var(--purple-cta)"/>`).join('');
+  let labels=days.map((d,i)=> i%2===0?`<text x="${pad+i*stepX}" y="${H-5}" font-size="8" fill="#aab8bc" text-anchor="middle">${d}</text>`:'').join('');
+  el.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}">${bars}<polyline fill="none" stroke="var(--purple-cta)" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>${dots}${labels}</svg>`;
+}
+function drawCharts(){
+  lineChart(document.getElementById('moodChart'), mood, 'var(--teal-01)', 10);
+  dualChart(document.getElementById('sleepChart'));
+}
+
+/* ---------------- Check-in flow ---------------- */
+let ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],notes:''};
+let step=0;
+const moodOpts=[
+  {e:'😣',t:'Awful',v:2},{e:'🙁',t:'Low',v:4},{e:'😐',t:'Okay',v:6},{e:'🙂',t:'Good',v:8},{e:'😄',t:'Great',v:10}
+];
+function openCheckin(){ step=0; ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],notes:''}; document.getElementById('checkin').classList.add('active'); renderStep(); }
+function closeCheckin(){ document.getElementById('checkin').classList.remove('active'); }
+function dots(n,tot){ let h='<div class="progress-dots">'; for(let i=0;i<tot;i++)h+=`<i class="${i<=n?'on':''}"></i>`; return h+'</div>'; }
+
+function renderStep(){
+  const s=document.getElementById('sheet'); const tot=5;
+  let body='';
+  if(step===0){
+    body=`${dots(0,tot)}<div class="step"><h3>How are you feeling today?</h3><p class="q-sub">No right answer. Just tap what fits.</p>
+      <div class="mood-scale">${moodOpts.map((m,i)=>`<div class="mood-opt ${ci.mood===m.v?'sel':''}" onclick="pickMood(${m.v})"><div class="e">${m.e}</div><div class="t">${m.t}</div></div>`).join('')}</div></div>`;
+  } else if(step===1){
+    body=`${dots(1,tot)}<div class="step"><h3>How did you sleep?</h3><p class="q-sub">Roughly is fine.</p>
+      <label class="card" style="box-shadow:none;margin-bottom:12px"><div class="sub">Hours slept</div><div class="range-val" id="slpv">${ci.sleep}h</div><input type="range" min="0" max="12" step="0.5" value="${ci.sleep}" oninput="ci.sleep=+this.value;document.getElementById('slpv').textContent=this.value+'h'"></label>
+      <div class="card" style="box-shadow:none"><div class="sub" style="margin-bottom:8px">Quality</div><div class="scale-row">${[2,4,6,8,10].map(q=>`<span class="chip ${ci.quality===q?'sel':''}" onclick="ci.quality=${q};renderStep()">${['','Poor','','Okay','','Good'][q]||q}</span>`).join('')}</div></div></div>`;
+  } else if(step===2){
+    body=`${dots(2,tot)}<div class="step"><h3>Did you move today?</h3><p class="q-sub">Anything counts — a walk is movement.</p>
+      <div class="scale-row">${['None','Light','Moderate','Vigorous'].map(m=>`<span class="chip ${ci.movement===m?'sel':''}" onclick="ci.movement='${m}';renderStep()">${m}</span>`).join('')}</div></div>`;
+  } else if(step===3){
+    body=`${dots(3,tot)}<div class="step"><h3>Stress level right now?</h3><p class="q-sub">And what's behind it, if anything.</p>
+      <div class="range-val" id="strv">${ci.stress}/10</div><input type="range" min="1" max="10" value="${ci.stress}" oninput="ci.stress=+this.value;document.getElementById('strv').textContent=this.value+'/10'">
+      <div class="sub" style="margin:14px 0 8px">Main trigger</div>
+      <div class="scale-row">${['Work','Money','Health','Relationships','Sleep','Nothing specific'].map(t=>`<span class="chip ${ci.trigger===t?'sel':''}" onclick="ci.trigger='${t}';renderStep()">${t}</span>`).join('')}</div></div>`;
+  } else if(step===4){
+    const opts=['Ate well','Showered','Left the house','Saw someone','Worked / studied','Rested'];
+    body=`${dots(4,tot)}<div class="step"><h3>Daily functioning</h3><p class="q-sub">Tick whatever you managed. All of it counts.</p>
+      <div class="check-grid">${opts.map(o=>`<div class="check ${ci.func.includes(o)?'sel':''}" onclick="toggleFunc('${o}')"><div class="bx"></div>${o}</div>`).join('')}</div>
+      <div class="sub" style="margin:16px 0 8px">Anything else? (optional)</div>
+      <textarea placeholder="Anything affecting your mood or day…" oninput="ci.notes=this.value">${ci.notes}</textarea></div>`;
+  }
+  // actions
+  let back = step>0?`<button class="btn btn-ghost" onclick="step--;renderStep()">Back</button>`:`<button class="btn btn-ghost" onclick="closeCheckin()">Cancel</button>`;
+  let nextLabel = step<4?'Next':'Save check-in';
+  let nextAct = step<4?'step++;renderStep()':'finishCheckin()';
+  s.innerHTML=`<div class="grab"></div>${body}<div class="sheet-actions">${back}<button class="btn btn-teal" onclick="${nextAct}">${nextLabel}</button></div>`;
+}
+function pickMood(v){ ci.mood=v; renderStep(); }
+function toggleFunc(o){ const i=ci.func.indexOf(o); i>=0?ci.func.splice(i,1):ci.func.push(o); renderStep(); }
+function finishCheckin(){
+  const s=document.getElementById('sheet');
+  const low = ci.mood!==null && ci.mood<=2;
+  s.innerHTML=`<div class="grab"></div><div class="done-screen"><div class="big">🌿</div><h3>Check-in saved</h3>
+    <p>Thank you for showing up for yourself today. No streaks, no pressure — just come back when it helps.</p>
+    <button class="btn btn-teal" onclick="closeCheckin();go('insights')">See what we're noticing</button>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="closeCheckin()">Done</button></div>`;
+  if(low){ setTimeout(()=>{ closeCheckin(); openCrisis(); },600); }
+}
+
+/* ---------------- Summary / export ---------------- */
+let sumRange=30;
+function setRange(el,n){ document.querySelectorAll('#me .chip').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); sumRange=n; }
+function buildSummary(){
+  const out=document.getElementById('summaryOut');
+  out.innerHTML=`<div class="card"><div class="summary-doc">
+    <div class="head"><div><h3>MeHelp Insights Summary</h3><div class="sub">Last ${sumRange} days · generated today</div></div><div class="deid">DE-IDENTIFIED</div></div>
+    <div class="kvs">
+      <div class="kv"><div class="k">Avg mood</div><div class="v">6.0 / 10</div></div>
+      <div class="kv"><div class="k">Avg sleep</div><div class="v">6.4 h</div></div>
+      <div class="kv"><div class="k">Avg stress</div><div class="v">5.1 / 10</div></div>
+      <div class="kv"><div class="k">Days moved</div><div class="v">8 / ${sumRange}</div></div>
+    </div>
+    <div class="sub" style="font-weight:700;color:var(--ink);margin-bottom:6px">Key patterns</div>
+    <ul class="pat-list">
+      <li>Mood consistently lowest on Monday mornings (~2 pts below average).</li>
+      <li>Stress ~3 pts higher on nights with under 6 hours sleep.</li>
+      <li>Mood higher on the 3 days movement was logged.</li>
+      <li>Gradual mood decline tracking shorter daylight hours.</li>
+    </ul>
+    <div class="sub" style="font-weight:700;color:var(--ink);margin:12px 0 6px">Client notes (selected)</div>
+    <p class="sub" style="color:var(--ink);font-style:italic">"Work deadlines piling up. Sleeping badly Sun–Mon."</p>
+  </div>
+  <button class="btn btn-primary" style="margin-top:14px" onclick="window.print()">⬇ Download / Print PDF</button>
+  <p class="sub" style="text-align:center;margin-top:8px">You choose who sees this. Nothing is shared automatically.</p>
+  </div>`;
+  out.scrollIntoView({behavior:'smooth'});
+}
+
+/* ---------------- Crisis ---------------- */
+function openCrisis(){ document.getElementById('crisis').classList.add('active'); }
+function closeCrisis(){ document.getElementById('crisis').classList.remove('active'); }
+</script>
+</body>
+</html>
