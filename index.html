@@ -248,6 +248,44 @@
   .acc-body{display:none;padding:0 14px 14px 50px}
   .acc-item.open .acc-body{display:block}
   .acc-body p{font-size:14px;line-height:1.55;color:#3f5a60}
+
+  /* ---------- Insights v2: confidence + data quality ---------- */
+  .dq{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .dq .bar{flex:1;height:9px;border-radius:5px;background:#e7ebee;overflow:hidden}
+  .dq .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-02),var(--teal-03));border-radius:5px}
+  .dq .pct{font-size:13px;font-weight:800;color:var(--teal-01)}
+  .conf{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.3px}
+  .conf.high{background:rgba(10,146,146,.14);color:var(--teal-01)}
+  .conf.med{background:#fff1d6;color:#a9760a}
+  .conf.low{background:#eceff1;color:#8aa0a6}
+  .insight .meta{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+  /* K10 result */
+  .k10-q{padding:14px 0;border-bottom:1px solid #eef1f3}
+  .k10-q p{font-size:14px;font-weight:600;margin-bottom:10px}
+  .k10-opts{display:flex;gap:5px}
+  .k10-opt{flex:1;text-align:center;font-size:9px;font-weight:600;color:#8aa0a6;cursor:pointer;border:1.5px solid #dde3e6;border-radius:10px;padding:7px 2px;line-height:1.2}
+  .k10-opt b{display:block;font-size:15px;color:var(--ink);margin-bottom:2px}
+  .k10-opt.sel{background:var(--teal-01);border-color:var(--teal-01);color:#fff}
+  .k10-opt.sel b{color:#fff}
+  .gauge{text-align:center;padding:12px 0}
+  .gauge .score{font-size:52px;font-weight:800;color:var(--teal-01);line-height:1}
+  .gauge .band{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px}
+  .spark{display:flex;align-items:flex-end;gap:5px;height:46px;padding:4px 0}
+  .spark i{flex:1;background:var(--teal-03);border-radius:3px;min-height:4px}
+  .spark i:last-child{background:var(--teal-01)}
+
+  /* Experiment */
+  .exp{background:linear-gradient(135deg,#f4f1fb,#ffffff);border:1px solid var(--purple-soft)}
+  .exp-result{display:flex;gap:14px;align-items:center;margin-top:12px}
+  .exp-delta{font-size:34px;font-weight:800;color:var(--teal-01);flex:none}
+
+  /* Clinician brief */
+  .cb-block{margin-top:18px}
+  .cb-block h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#7d949a;margin-bottom:8px;font-weight:700}
+  .cb-flag{display:flex;gap:10px;align-items:flex-start;background:#fff6ec;border:1px solid #ffe2b8;border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.45}
+  .cb-row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:9px 0;border-bottom:1px solid #eef1f3}
+  .cb-row b{font-weight:700;text-align:right}
 </style>
 </head>
 <body>
@@ -294,6 +332,12 @@
       <div class="banner" id="pilot-banner">
         💡 You've logged 9 days. Tap an insight below — patterns are starting to show.
         <span class="x" onclick="this.parentElement.style.display='none'">✕</span>
+      </div>
+
+      <div class="card" id="k10Prompt" style="border-color:var(--teal-03)">
+        <h2>Fortnightly wellbeing check <span class="tag-soft">K10</span></h2>
+        <p class="sub" style="margin-bottom:12px">A quick, validated check-in (about 2 minutes). It anchors your daily logs to a recognised measure and shows your psychologist how things are tracking over time.</p>
+        <button class="btn btn-teal" onclick="openK10()">Start wellbeing check</button>
       </div>
 
       <div class="card">
@@ -347,26 +391,8 @@
 
     <!-- ---- INSIGHTS ---- -->
     <section class="screen" id="insights">
-      <div class="card">
-        <h2>What we're noticing</h2>
-        <p class="sub" style="margin-bottom:14px">Plain-language observations from your own data — these are patterns to reflect on, not diagnoses.</p>
-        <div class="insight">
-          <div class="dot">📅</div>
-          <p><b>Mondays are hardest.</b> Your mood is lowest on Monday mornings — about 2 points below your week average.</p>
-        </div>
-        <div class="insight warn">
-          <div class="dot">😴</div>
-          <p><b>Sleep is driving a lot of this.</b> On days you slept under 6 hours, your stress was about 3 points higher.</p>
-        </div>
-        <div class="insight">
-          <div class="dot">🏃</div>
-          <p><b>Movement lifts you.</b> You moved 3 days this week and your mood was higher on each of those days.</p>
-        </div>
-        <div class="insight">
-          <div class="dot">☀️</div>
-          <p><b>A seasonal dip may be starting.</b> Your mood has trended down as daylight has dropped over the past 2 weeks.</p>
-        </div>
-      </div>
+      <div id="insightsDynamic"></div>
+      <div id="experimentMount"></div>
 
       <div class="card" style="background:var(--neutral);border:none">
         <h2>Could physical health be a factor?</h2>
@@ -419,6 +445,12 @@
       </div>
 
       <div id="summaryOut"></div>
+
+      <div class="card" style="border-color:var(--teal-03)">
+        <h2>What your psychologist sees</h2>
+        <p class="sub" style="margin-bottom:12px">Preview the session-ready summary your psychologist can work from — built from your data, de-identified, and shared only if you choose. This is the part that saves time in session.</p>
+        <button class="btn btn-teal" onclick="openClinician()">Preview the clinician summary</button>
+      </div>
 
       <div class="card">
         <h2>Privacy & data</h2>
@@ -482,6 +514,30 @@
     <div class="rd-body" id="rdBody"></div>
   </section>
 
+  <!-- ============ K10 WELLBEING CHECK ============ -->
+  <section id="k10" class="res-detail">
+    <header class="rd-head">
+      <div class="bubble"></div>
+      <button class="rd-back" onclick="closeK10()">‹ Back</button>
+      <div class="rd-meta"><span class="rd-tag">Validated check</span><span class="rd-tag alt">K10 · 2 min</span></div>
+      <h2>Fortnightly wellbeing check</h2>
+      <p>Anchors your daily logs to a recognised measure</p>
+    </header>
+    <div class="rd-body" id="k10Body"></div>
+  </section>
+
+  <!-- ============ CLINICIAN SUMMARY ============ -->
+  <section id="clinician" class="res-detail">
+    <header class="rd-head">
+      <div class="bubble"></div>
+      <button class="rd-back" onclick="closeClinician()">‹ Back</button>
+      <div class="rd-meta"><span class="rd-tag">Clinician view</span><span class="rd-tag alt">De-identified</span></div>
+      <h2>What your psychologist sees</h2>
+      <p>A session-ready summary, shared only if you choose</p>
+    </header>
+    <div class="rd-body" id="clinBody"></div>
+  </section>
+
 </div>
 
 <script>
@@ -499,6 +555,8 @@ function startApp(){
   document.getElementById('nav').style.display='flex';
   drawCharts();
   renderLib('All');
+  renderInsights();
+  renderExperiment();
 }
 function go(s){
   document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -506,6 +564,7 @@ function go(s){
   document.querySelectorAll('nav.bottom button[data-s]').forEach(b=>b.classList.toggle('active', b.dataset.s===s));
   document.getElementById('main').scrollTop=0;
   if(s==='home') drawCharts();
+  if(s==='insights'){ renderInsights(); renderExperiment(); }
 }
 
 /* ---------------- Charts (inline SVG) ---------------- */
@@ -537,12 +596,12 @@ function drawCharts(){
 }
 
 /* ---------------- Check-in flow ---------------- */
-let ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],notes:''};
+let ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],notes:''};
 let step=0;
 const moodOpts=[
   {e:'😣',t:'Awful',v:2},{e:'🙁',t:'Low',v:4},{e:'😐',t:'Okay',v:6},{e:'🙂',t:'Good',v:8},{e:'😄',t:'Great',v:10}
 ];
-function openCheckin(){ step=0; ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],notes:''}; document.getElementById('checkin').classList.add('active'); renderStep(); }
+function openCheckin(){ step=0; ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],notes:''}; document.getElementById('checkin').classList.add('active'); renderStep(); }
 function closeCheckin(){ document.getElementById('checkin').classList.remove('active'); }
 function dots(n,tot){ let h='<div class="progress-dots">'; for(let i=0;i<tot;i++)h+=`<i class="${i<=n?'on':''}"></i>`; return h+'</div>'; }
 
@@ -568,6 +627,8 @@ function renderStep(){
     const opts=['Ate well','Showered','Left the house','Saw someone','Worked / studied','Rested'];
     body=`${dots(4,tot)}<div class="step"><h3>Daily functioning</h3><p class="q-sub">Tick whatever you managed. All of it counts.</p>
       <div class="check-grid">${opts.map(o=>`<div class="check ${ci.func.includes(o)?'sel':''}" onclick="toggleFunc('${o}')"><div class="bx"></div>${o}</div>`).join('')}</div>
+      <div class="sub" style="margin:16px 0 8px">Anything notable today? (optional — helps spot patterns)</div>
+      <div class="scale-row">${['Alcohol','Caffeine','Poor diet','Social','Overworked','Outdoors','Unwell','Period'].map(t=>`<span class="chip ${ci.tags.includes(t)?'sel':''}" onclick="toggleTag('${t}')">${t}</span>`).join('')}</div>
       <div class="sub" style="margin:16px 0 8px">Anything else? (optional)</div>
       <textarea placeholder="Anything affecting your mood or day…" oninput="ci.notes=this.value">${ci.notes}</textarea></div>`;
   }
@@ -579,6 +640,7 @@ function renderStep(){
 }
 function pickMood(v){ ci.mood=v; renderStep(); }
 function toggleFunc(o){ const i=ci.func.indexOf(o); i>=0?ci.func.splice(i,1):ci.func.push(o); renderStep(); }
+function toggleTag(o){ const i=ci.tags.indexOf(o); i>=0?ci.tags.splice(i,1):ci.tags.push(o); renderStep(); }
 function finishCheckin(){
   const s=document.getElementById('sheet');
   const low = ci.mood!==null && ci.mood<=2;
@@ -795,6 +857,137 @@ function stopBreath(){
   if(b) b.textContent='Start';
 }
 function setBreathCount(){ const el=document.getElementById('breathCycle'); if(el) el.textContent=breathCycles; }
+
+/* ================= INSIGHTS ENGINE, K10, EXPERIMENT, CLINICIAN ================= */
+const moved=[0,0,0,1,1,1,0, 0,0,1,0,1,1,0];               // 6 of 14 days; aligned with higher-mood days
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const round1=x=>Math.round(x*10)/10;
+function corr(a,b){
+  const n=a.length, ma=mean(a), mb=mean(b); let num=0,da=0,db=0;
+  for(let i=0;i<n;i++){ const x=a[i]-ma, y=b[i]-mb; num+=x*y; da+=x*x; db+=y*y; }
+  return (da&&db)? num/Math.sqrt(da*db) : 0;
+}
+function confFor(n,effect,strong){
+  if(n>=5 && Math.abs(effect)>=strong)      return {c:'high',l:`Clear pattern · ${n} days`};
+  if(n>=3 && Math.abs(effect)>=strong*0.5)  return {c:'med', l:`Early pattern · ${n} days`};
+  return {c:'low', l:`Keep logging · ${n} days`};
+}
+function computeInsights(){
+  const out=[];
+  // 1. Short sleep -> stress
+  const lo=[],hi=[]; sleep.forEach((s,i)=>{(s<6?lo:hi).push(stress[i]);});
+  if(lo.length&&hi.length){ const d=mean(lo)-mean(hi);
+    out.push({icon:'😴',cls:d>0?'warn':'',title:'Short sleep, higher stress',
+      text:`On the ${lo.length} nights you slept under 6 hours, your stress ran about ${round1(Math.abs(d))} points ${d>=0?'higher':'lower'}.`,
+      conf:confFor(lo.length,d,1.5)}); }
+  // 2. Movement -> mood
+  const mm=[],nm=[]; moved.forEach((v,i)=>{(v?mm:nm).push(mood[i]);});
+  if(mm.length&&nm.length){ const d=mean(mm)-mean(nm);
+    out.push({icon:'🏃',title:'Moving lifts your mood',
+      text:`On the ${mm.length} days you moved, your mood averaged ${round1(Math.abs(d))} points ${d>=0?'higher':'lower'}.`,
+      conf:confFor(mm.length,d,0.6)}); }
+  // 3. Monday dip (deliberately low-confidence: only 2 Mondays)
+  const mon=[mood[0],mood[7]], others=mood.filter((_,i)=>i%7!==0); const dm=mean(others)-mean(mon);
+  out.push({icon:'📅',title:'A possible Monday dip',
+    text:`Your mood on the ${mon.length} Mondays logged sat about ${round1(Math.abs(dm))} points ${dm>=0?'below':'above'} the rest of the week — but two Mondays isn't enough to be sure yet.`,
+    conf:confFor(mon.length,dm,1)});
+  // 4. Sleep today -> mood tomorrow (lead/lag)
+  const r=corr(sleep.slice(0,-1), mood.slice(1));
+  out.push({icon:'🔮',title:'Sleep today, mood tomorrow',
+    text:`Better-slept nights tend to be followed by better-mood days (correlation ${round1(r)}). This lead-and-lag link is easy to miss day to day.`,
+    conf:confFor(sleep.length-1, r, 0.35)});
+  // 5. Personal baseline
+  const prior=mean(mood.slice(0,7)), recent=mean(mood.slice(7)); const db=recent-prior;
+  out.push({icon:'📈',title:'Against your own baseline',
+    text:`Your mood this week averaged ${round1(recent)}, ${Math.abs(db)<0.3?'about the same as':(db>0?'up from':'down from')} ${round1(prior)} the week before. We compare you to you, never to anyone else.`,
+    conf:{c:'high',l:'Your baseline · 14 days'}});
+  return out;
+}
+function renderInsights(){
+  const ins=computeInsights(); const dq=86;
+  let h=`<div class="card"><h2>Data quality</h2>
+    <div class="dq"><div class="bar"><i style="width:${dq}%"></i></div><span class="pct">${dq}%</span></div>
+    <p class="sub">Based on 12 of your last 14 days. The more consistently you log, the more confident these insights become.</p></div>`;
+  h+=`<div class="card"><h2>What we're noticing</h2>
+    <p class="sub" style="margin-bottom:14px">Patterns from your own data, each labelled with how sure we are. These are prompts to reflect on and discuss, not diagnoses.</p>`;
+  h+=ins.map(o=>`<div class="insight ${o.cls||''}"><div class="dot">${o.icon}</div><div><p><b>${o.title}.</b> ${o.text}</p><div class="meta"><span class="conf ${o.conf.c}">${o.conf.l}</span></div></div></div>`).join('');
+  h+=`</div>`;
+  document.getElementById('insightsDynamic').innerHTML=h;
+}
+function renderExperiment(){
+  const mm=[],nm=[]; moved.forEach((v,i)=>{(v?mm:nm).push(mood[i]);});
+  const a=round1(mean(mm)), b=round1(mean(nm)), d=round1(a-b);
+  document.getElementById('experimentMount').innerHTML=`<div class="card exp">
+    <h2>Behavioural experiment <span class="tag-soft">try &amp; measure</span></h2>
+    <p class="sub" style="margin-bottom:8px">Test one change and let the data show its effect — your own mini-study, the kind of thing your psychologist can build on.</p>
+    <div style="font-weight:700;font-size:15px;margin-top:6px">Move at least 20 minutes a day</div>
+    <span class="conf high" style="margin-top:8px">Completed · 7 days</span>
+    <div class="exp-result"><div class="exp-delta">+${d}</div><div class="sub" style="color:var(--ink)">mood points on days you moved (${a}/10) versus days you didn't (${b}/10). A clear, personal result worth repeating.</div></div>
+    <button class="btn btn-soft" style="margin-top:14px" onclick="alert('Prototype: pick a new experiment — sleep by 11pm, daily sunlight, no caffeine after 2pm — and the app measures its effect on your mood over the next week.')">Start a new experiment</button>
+  </div>`;
+}
+
+/* ---- K10 wellbeing check ---- */
+const K10Q=["tired out for no good reason","nervous","so nervous that nothing could calm you down","hopeless","restless or fidgety","so restless you could not sit still","depressed","that everything was an effort","so sad that nothing could cheer you up","worthless"];
+const K10OPT=["None","A little","Some","Most","All"];
+let k10State=[2,3,2,2,3,2,2,2,2,2];
+let k10History=[{label:'8 wks',score:29},{label:'6 wks',score:27},{label:'4 wks',score:24},{label:'2 wks',score:22}];
+function k10Band(s){ if(s<=19)return{t:'Likely well',c:'#0a7d5a',bg:'#e3f3ec'}; if(s<=24)return{t:'Mild distress',c:'#a9760a',bg:'#fff1d6'}; if(s<=29)return{t:'Moderate distress',c:'#c9523f',bg:'#fde7e3'}; return{t:'High distress',c:'#b2271f',bg:'#fde1e1'}; }
+function openK10(){ renderK10form(); const d=document.getElementById('k10'); d.classList.add('active'); d.scrollTop=0; }
+function closeK10(){ document.getElementById('k10').classList.remove('active'); }
+function selK10(qi,v){ k10State[qi]=v; renderK10form(); }
+function renderK10form(){
+  let h=`<p class="rd-lead">In the past 4 weeks, about how often did you feel… <br><span class="sub">Sample answers are pre-filled so you can see how scoring works — tap any to change.</span></p>`;
+  h+=K10Q.map((q,qi)=>`<div class="k10-q"><p>${qi+1}. …${q}?</p><div class="k10-opts">${K10OPT.map((o,oi)=>`<div class="k10-opt ${k10State[qi]===oi+1?'sel':''}" onclick="selK10(${qi},${oi+1})"><b>${oi+1}</b>${o}</div>`).join('')}</div></div>`).join('');
+  h+=`<button class="btn btn-primary" style="margin-top:18px" onclick="submitK10()">See my result</button>
+    <p class="disc">The K10 is a widely used screening measure of psychological distress, not a diagnosis. Your psychologist reads it alongside everything else.</p>`;
+  document.getElementById('k10Body').innerHTML=h;
+}
+function submitK10(){
+  const score=k10State.reduce((a,b)=>a+(b||1),0), b=k10Band(score);
+  const hist=[...k10History,{label:'now',score}];
+  const spark=hist.map(x=>`<i style="height:${(x.score/50)*100}%"></i>`).join('');
+  document.getElementById('k10Body').innerHTML=`
+    <div class="gauge"><div class="score">${score}</div><div class="sub">out of 50</div><div class="band" style="background:${b.bg};color:${b.c}">${b.t}</div></div>
+    <div class="rd-section"><h3>Your trajectory</h3><div class="spark">${spark}</div>
+      <p class="sub" style="margin-top:8px">Down from 29 eight weeks ago — distress easing as your sleep and movement have improved. This change over time is exactly what your psychologist looks for.</p></div>
+    <div class="rd-section"><h3>What this means</h3><p>A score in this range suggests ${b.t.toLowerCase()} on this screen. It is one signal among many, best understood together with your psychologist.</p></div>
+    <button class="btn btn-teal" style="margin-top:6px" onclick="closeK10()">Done</button>
+    <p class="disc">The K10 is a screening measure, not a diagnosis. If you feel distressed, talk to your psychologist, or call Lifeline on 13 11 14.</p>`;
+  k10History=hist;
+  document.getElementById('k10').scrollTop=0;
+}
+
+/* ---- Clinician summary ---- */
+function openClinician(){ renderClinician(); const d=document.getElementById('clinician'); d.classList.add('active'); d.scrollTop=0; }
+function closeClinician(){ document.getElementById('clinician').classList.remove('active'); }
+function renderClinician(){
+  const recent=round1(mean(mood.slice(7))), prior=round1(mean(mood.slice(0,7)));
+  const avgSleep=round1(mean(sleep)), avgStress=round1(mean(stress)), movedDays=moved.reduce((a,b)=>a+b,0);
+  const loNights=sleep.filter(s=>s<6).length;
+  const last=k10History[k10History.length-1].score, lb=k10Band(last);
+  const spark=k10History.map(x=>`<i style="height:${(x.score/50)*100}%"></i>`).join('');
+  document.getElementById('clinBody').innerHTML=`
+    <div class="dq"><div class="bar"><i style="width:86%"></i></div><span class="pct">86%</span></div>
+    <p class="sub">Based on 12 of 14 days. De-identified. Shared only with the client's consent.</p>
+    <div class="cb-block"><h3>K10 trajectory</h3><div class="spark">${spark}</div>
+      <div class="cb-row"><span>Latest K10</span><b>${last} · ${lb.t} (was 29 · Moderate)</b></div></div>
+    <div class="cb-block"><h3>Between-session snapshot</h3>
+      <div class="cb-row"><span>Avg mood (this week)</span><b>${recent}/10 (was ${prior})</b></div>
+      <div class="cb-row"><span>Avg sleep</span><b>${avgSleep} h</b></div>
+      <div class="cb-row"><span>Avg stress</span><b>${avgStress}/10</b></div>
+      <div class="cb-row"><span>Days moved</span><b>${movedDays}/14</b></div></div>
+    <div class="cb-block"><h3>Flags to explore</h3>
+      <div class="cb-flag">😴 Sleep under 6h on ${loNights} nights, each followed by higher next-day stress.</div>
+      <div class="cb-flag">📅 Possible Monday-morning mood dip — low confidence, only 2 data points so far.</div></div>
+    <div class="cb-block"><h3>Between-session goals</h3>
+      <div class="cb-row"><span>“Sleep by 11pm”</span><b>5 / 7 nights</b></div>
+      <div class="cb-row"><span>Completed: Intro to ACT</span><b>Yes</b></div></div>
+    <div class="cb-block"><h3>Client note (selected)</h3>
+      <p class="sub" style="color:var(--ink);font-style:italic">“Work deadlines piling up. Sleeping badly Sun–Mon.”</p></div>
+    <button class="btn btn-teal" style="margin-top:18px" onclick="closeClinician()">Close preview</button>
+    <p class="disc">This is the summary your psychologist could receive if you choose to share it. Nothing is sent automatically — you stay in control. Reading it takes about 30 seconds and saves gathering the same picture by hand in session.</p>`;
+}
 </script>
 </body>
 </html>
