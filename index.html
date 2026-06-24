@@ -289,6 +289,35 @@
   .note-box{background:var(--neutral);border-left:4px solid var(--teal-03);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#3f5a60;margin-bottom:16px}
   .note-box b{color:var(--ink)}
   .note-box.clin{border-left-color:var(--purple-cta);background:#f5f2fb}
+
+  /* Voice note */
+  .voice{border:1.5px solid #dde3e6;border-radius:14px;padding:12px;margin-bottom:4px}
+  .voice.rec{display:flex;align-items:center;gap:10px;border-color:var(--teal-02);background:#f0fbfb}
+  .rec-dot{width:12px;height:12px;border-radius:50%;background:#c9523f;animation:pulse 1s infinite;flex:none}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+  .rec-time{font-weight:700;font-variant-numeric:tabular-nums}
+  .rec-label{font-size:13px;color:#8aa0a6}
+  .voice .vmeta{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap}
+  .voice .vtext{font-size:13.5px;line-height:1.5;font-style:italic;color:#3f5a60;margin-bottom:10px}
+
+  /* What helps me board */
+  .hb{display:flex;align-items:center;gap:10px;margin:11px 0}
+  .hb .name{width:108px;font-size:12.5px;font-weight:600;flex:none}
+  .hb .track{flex:1;height:18px;background:#eef1f3;border-radius:9px;position:relative;overflow:hidden}
+  .hb .track .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#cdd6d9}
+  .hb .fill{position:absolute;top:0;bottom:0}
+  .hb .fill.pos{left:50%;background:var(--teal-02);border-radius:0 9px 9px 0}
+  .hb .fill.neg{right:50%;background:#e3a14b;border-radius:9px 0 0 9px}
+  .hb .val{width:42px;text-align:right;font-size:12px;font-weight:700;flex:none}
+  .hb .val.pos{color:var(--teal-01)}
+  .hb .val.neg{color:#b9772a}
+
+  /* Session rating */
+  .srs-q{margin-bottom:20px}
+  .srs-q label{display:block;font-size:14.5px;font-weight:600;margin-bottom:10px;line-height:1.4}
+  .srs-q input[type=range]{width:100%;accent-color:var(--teal-01)}
+  .srs-q .ends{display:flex;justify-content:space-between;font-size:11px;color:#8aa0a6;margin-top:4px}
+  .srs-q .ends b{color:var(--teal-01);font-size:13px}
 </style>
 </head>
 <body>
@@ -395,6 +424,7 @@
     <!-- ---- INSIGHTS ---- -->
     <section class="screen" id="insights">
       <div id="insightsDynamic"></div>
+      <div id="helpsMount"></div>
       <div id="experimentMount"></div>
 
       <div class="card" style="background:var(--neutral);border:none">
@@ -448,6 +478,12 @@
       </div>
 
       <div id="summaryOut"></div>
+
+      <div class="card">
+        <h2>Session feedback</h2>
+        <p class="sub" style="margin-bottom:12px">After each session, a quick 4-question check helps your psychologist see what's working and tune the next one. Takes about 30 seconds.</p>
+        <button class="btn btn-teal" onclick="openSRS()">Rate your last session</button>
+      </div>
 
       <div class="card" style="border-color:var(--teal-03)">
         <h2>What your psychologist sees</h2>
@@ -541,6 +577,18 @@
     <div class="rd-body" id="clinBody"></div>
   </section>
 
+  <!-- ============ SESSION RATING (ALLIANCE) ============ -->
+  <section id="srs" class="res-detail">
+    <header class="rd-head">
+      <div class="bubble"></div>
+      <button class="rd-back" onclick="closeSRS()">‹ Back</button>
+      <div class="rd-meta"><span class="rd-tag">Session feedback</span><span class="rd-tag alt">30 sec</span></div>
+      <h2>How was your last session?</h2>
+      <p>Your honest answer helps your psychologist tune the next one</p>
+    </header>
+    <div class="rd-body" id="srsBody"></div>
+  </section>
+
 </div>
 
 <script>
@@ -559,6 +607,7 @@ function startApp(){
   drawCharts();
   renderLib('All');
   renderInsights();
+  renderWhatHelps();
   renderExperiment();
 }
 function go(s){
@@ -567,7 +616,7 @@ function go(s){
   document.querySelectorAll('nav.bottom button[data-s]').forEach(b=>b.classList.toggle('active', b.dataset.s===s));
   document.getElementById('main').scrollTop=0;
   if(s==='home') drawCharts();
-  if(s==='insights'){ renderInsights(); renderExperiment(); }
+  if(s==='insights'){ renderInsights(); renderWhatHelps(); renderExperiment(); }
 }
 
 /* ---------------- Charts (inline SVG) ---------------- */
@@ -599,13 +648,13 @@ function drawCharts(){
 }
 
 /* ---------------- Check-in flow ---------------- */
-let ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],notes:''};
+let ci={mood:null,emotions:[],sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],voiceState:'idle',voiceNote:null,notes:''};
 let step=0;
 const moodOpts=[
   {e:'😣',t:'Awful',v:2},{e:'🙁',t:'Low',v:4},{e:'😐',t:'Okay',v:6},{e:'🙂',t:'Good',v:8},{e:'😄',t:'Great',v:10}
 ];
-function openCheckin(){ step=0; ci={mood:null,sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],notes:''}; document.getElementById('checkin').classList.add('active'); renderStep(); }
-function closeCheckin(){ document.getElementById('checkin').classList.remove('active'); }
+function openCheckin(){ step=0; ci={mood:null,emotions:[],sleep:7,quality:6,movement:null,stress:5,trigger:null,func:[],tags:[],voiceState:'idle',voiceNote:null,notes:''}; document.getElementById('checkin').classList.add('active'); renderStep(); }
+function closeCheckin(){ clearInterval(voiceTimer); document.getElementById('checkin').classList.remove('active'); }
 function dots(n,tot){ let h='<div class="progress-dots">'; for(let i=0;i<tot;i++)h+=`<i class="${i<=n?'on':''}"></i>`; return h+'</div>'; }
 
 function renderStep(){
@@ -613,7 +662,9 @@ function renderStep(){
   let body='';
   if(step===0){
     body=`${dots(0,tot)}<div class="step"><h3>How are you feeling today?</h3><p class="q-sub">No right answer. Just tap what fits.</p>
-      <div class="mood-scale">${moodOpts.map((m,i)=>`<div class="mood-opt ${ci.mood===m.v?'sel':''}" onclick="pickMood(${m.v})"><div class="e">${m.e}</div><div class="t">${m.t}</div></div>`).join('')}</div></div>`;
+      <div class="mood-scale">${moodOpts.map((m,i)=>`<div class="mood-opt ${ci.mood===m.v?'sel':''}" onclick="pickMood(${m.v})"><div class="e">${m.e}</div><div class="t">${m.t}</div></div>`).join('')}</div>
+      ${ci.mood!==null?`<div class="sub" style="margin:18px 0 8px">Which words fit? <span style="font-weight:400">(optional — naming it helps)</span></div><div class="scale-row">${emotionWords(ci.mood).map(w=>`<span class="chip ${ci.emotions.includes(w)?'sel':''}" onclick="toggleEmotion('${w}')">${w}</span>`).join('')}</div>`:''}
+      </div>`;
   } else if(step===1){
     body=`${dots(1,tot)}<div class="step"><h3>How did you sleep?</h3><p class="q-sub">Roughly is fine.</p>
       <label class="card" style="box-shadow:none;margin-bottom:12px"><div class="sub">Hours slept</div><div class="range-val" id="slpv">${ci.sleep}h</div><input type="range" min="0" max="12" step="0.5" value="${ci.sleep}" oninput="ci.sleep=+this.value;document.getElementById('slpv').textContent=this.value+'h'"></label>
@@ -632,7 +683,9 @@ function renderStep(){
       <div class="check-grid">${opts.map(o=>`<div class="check ${ci.func.includes(o)?'sel':''}" onclick="toggleFunc('${o}')"><div class="bx"></div>${o}</div>`).join('')}</div>
       <div class="sub" style="margin:16px 0 8px">Anything notable today? (optional — helps spot patterns)</div>
       <div class="scale-row">${['Alcohol','Caffeine','Poor diet','Social','Overworked','Outdoors','Unwell','Period'].map(t=>`<span class="chip ${ci.tags.includes(t)?'sel':''}" onclick="toggleTag('${t}')">${t}</span>`).join('')}</div>
-      <div class="sub" style="margin:16px 0 8px">Anything else? (optional)</div>
+      <div class="sub" style="margin:16px 0 8px">Prefer to talk? (optional)</div>
+      <div id="voiceMount">${voiceUI()}</div>
+      <div class="sub" style="margin:16px 0 8px">Or write it down (optional)</div>
       <textarea placeholder="Anything affecting your mood or day…" oninput="ci.notes=this.value">${ci.notes}</textarea></div>`;
   }
   // actions
@@ -641,9 +694,31 @@ function renderStep(){
   let nextAct = step<4?'step++;renderStep()':'finishCheckin()';
   s.innerHTML=`<div class="grab"></div>${body}<div class="sheet-actions">${back}<button class="btn btn-teal" onclick="${nextAct}">${nextLabel}</button></div>`;
 }
-function pickMood(v){ ci.mood=v; renderStep(); }
+function pickMood(v){ ci.mood=v; ci.emotions=[]; renderStep(); }
+function emotionWords(v){
+  if(v<=4) return ['Overwhelmed','Anxious','Sad','Angry','Drained','Lonely','Hopeless','Stressed','Irritable','Numb'];
+  if(v<=6) return ['Flat','Tired','Restless','Meh','Uneasy','Distracted','So-so','Bored'];
+  return ['Calm','Content','Hopeful','Energised','Grateful','Proud','Relaxed','Motivated'];
+}
+function toggleEmotion(w){ const i=ci.emotions.indexOf(w); i>=0?ci.emotions.splice(i,1):ci.emotions.push(w); renderStep(); }
 function toggleFunc(o){ const i=ci.func.indexOf(o); i>=0?ci.func.splice(i,1):ci.func.push(o); renderStep(); }
 function toggleTag(o){ const i=ci.tags.indexOf(o); i>=0?ci.tags.splice(i,1):ci.tags.push(o); renderStep(); }
+
+/* Voice note (simulated capture + transcription for the prototype) */
+let voiceTimer=null, voiceSeconds=0;
+function fmtT(s){ const m=Math.floor(s/60), ss=s%60; return m+':'+(ss<10?'0':'')+ss; }
+function voiceUI(){
+  const s=ci.voiceState||'idle';
+  if(s==='recording') return `<div class="voice rec"><span class="rec-dot"></span><span class="rec-time" id="voiceTime">${fmtT(voiceSeconds)}</span><span class="rec-label">Listening…</span><button class="btn btn-teal small" style="width:auto;margin-left:auto" onclick="stopVoice()">Stop</button></div>`;
+  if(s==='transcribing') return `<div class="voice"><span class="rec-label">Transcribing your note…</span></div>`;
+  if(s==='done') return `<div class="voice"><div class="vmeta"><b>🎙 Voice note · ${fmtT(ci.voiceLen||0)}</b><span class="conf med">Tone: ${ci.voiceSent||'mixed'}</span></div><p class="vtext">“${ci.voiceNote}”</p><button class="chip" onclick="resetVoice()">Delete &amp; re-record</button></div>`;
+  return `<button class="btn btn-ghost" onclick="startVoice()">🎤 Record a voice note</button>`;
+}
+function refreshVoice(){ const m=document.getElementById('voiceMount'); if(m) m.innerHTML=voiceUI(); }
+function startVoice(){ ci.voiceState='recording'; voiceSeconds=0; clearInterval(voiceTimer); voiceTimer=setInterval(()=>{ voiceSeconds++; const el=document.getElementById('voiceTime'); if(el) el.textContent=fmtT(voiceSeconds); }, 1000); refreshVoice(); }
+function stopVoice(){ clearInterval(voiceTimer); ci.voiceLen=voiceSeconds||14; ci.voiceState='transcribing'; refreshVoice();
+  setTimeout(()=>{ ci.voiceNote='Work has been full-on this week and I haven’t slept well, but I did get out for a walk on the weekend which really helped.'; ci.voiceSent='mixed'; ci.voiceState='done'; refreshVoice(); }, 1300); }
+function resetVoice(){ clearInterval(voiceTimer); ci.voiceState='idle'; ci.voiceNote=null; refreshVoice(); }
 function finishCheckin(){
   const s=document.getElementById('sheet');
   const low = ci.mood!==null && ci.mood<=2;
@@ -982,6 +1057,9 @@ function renderClinician(){
       <div class="cb-row"><span>Avg sleep</span><b>${avgSleep} h</b></div>
       <div class="cb-row"><span>Avg stress</span><b>${avgStress}/10</b></div>
       <div class="cb-row"><span>Days moved</span><b>${movedDays}/14</b></div></div>
+    <div class="cb-block"><h3>Session feedback (alliance)</h3>
+      <div class="cb-row"><span>Last session rating</span><b>9.2 / 10</b></div>
+      <div class="cb-row"><span>Across 4 sessions</span><b>Improving</b></div></div>
     <div class="cb-block"><h3>Flags to explore</h3>
       <div class="cb-flag">😴 Sleep under 6h on ${loNights} nights, each followed by higher next-day stress.</div>
       <div class="cb-flag">📅 Possible Monday-morning mood dip — low confidence, only 2 data points so far.</div></div>
@@ -992,6 +1070,58 @@ function renderClinician(){
       <p class="sub" style="color:var(--ink);font-style:italic">“Work deadlines piling up. Sleeping badly Sun–Mon.”</p></div>
     <button class="btn btn-teal" style="margin-top:18px" onclick="closeClinician()">Close preview</button>
     <p class="disc">This is the summary your psychologist could receive if you choose to share it. Nothing is sent automatically — you stay in control. Reading it takes about 30 seconds and saves gathering the same picture by hand in session.</p>`;
+}
+
+/* ---- "What helps me" board ---- */
+function renderWhatHelps(){
+  const gs=[],os=[]; sleep.forEach((s,i)=>{(s>=7?gs:os).push(mood[i]);});
+  const mm=[],nm=[]; moved.forEach((v,i)=>{(v?mm:nm).push(mood[i]);});
+  const factors=[
+    {n:'Movement',        d:round1(mean(mm)-mean(nm)), c:'high', src:''},
+    {n:'Good sleep (7h+)',d:round1(mean(gs)-mean(os)), c:'med',  src:''},
+    {n:'Social contact',  d:1.1,  c:'med', src:'tags'},
+    {n:'Time outdoors',   d:0.9,  c:'low', src:'tags'},
+    {n:'Alcohol',         d:-0.8, c:'low', src:'tags'},
+    {n:'Feeling overworked', d:-1.1, c:'med', src:'tags'},
+  ].sort((a,b)=>b.d-a.d);
+  const rows=factors.map(f=>{
+    const pos=f.d>=0, w=Math.min(Math.abs(f.d)/2*50,50);
+    return `<div class="hb"><span class="name">${f.n}</span>
+      <div class="track"><span class="mid"></span><span class="fill ${pos?'pos':'neg'}" style="width:${w}%"></span></div>
+      <span class="val ${pos?'pos':'neg'}">${pos?'+':''}${f.d}</span></div>`;
+  }).join('');
+  document.getElementById('helpsMount').innerHTML=`<div class="card">
+    <h2>What helps you (and what doesn't)</h2>
+    <p class="sub" style="margin-bottom:6px">How each factor lines up with your mood. Movement and sleep are from your daily logs; the rest are early signals from your tags and will sharpen as you add more.</p>
+    ${rows}
+    <p class="sub" style="margin-top:10px">Bars to the right lift your mood; bars to the left lower it. This is association, not proof — a good thing to test with a behavioural experiment.</p>
+  </div>`;
+}
+
+/* ---- Session Rating Scale (therapeutic alliance) ---- */
+const SRS_Q=[
+  'I felt heard, understood and respected.',
+  'We worked on what I wanted to work on.',
+  'The way we worked was a good fit for me.',
+  'Overall, today’s session felt right for me.'
+];
+let srsState=[8,8,8,8];
+function openSRS(){ srsState=[8,8,8,8]; renderSRS(); const d=document.getElementById('srs'); d.classList.add('active'); d.scrollTop=0; }
+function closeSRS(){ document.getElementById('srs').classList.remove('active'); }
+function renderSRS(){
+  let h=`<p class="rd-lead">Slide each one to wherever feels true. There are no wrong answers, and it only goes to your psychologist.</p>`;
+  h+=SRS_Q.map((q,i)=>`<div class="srs-q"><label>${i+1}. ${q}</label>
+    <input type="range" min="0" max="10" value="${srsState[i]}" oninput="srsState[${i}]=+this.value;document.getElementById('srsv${i}').textContent=this.value">
+    <div class="ends"><span>Not really</span><span><b id="srsv${i}">${srsState[i]}</b> / 10</span><span>Completely</span></div></div>`).join('');
+  h+=`<button class="btn btn-primary" onclick="submitSRS()">Send to my psychologist</button>
+    <p class="disc">This is the Session Rating Scale, a brief, widely used check of how a session felt for you. Honest feedback here is one of the strongest predictors of therapy working, because it lets your psychologist adjust to you.</p>`;
+  document.getElementById('srsBody').innerHTML=h;
+}
+function submitSRS(){
+  const avg=round1(mean(srsState));
+  document.getElementById('srsBody').innerHTML=`<div class="done-screen"><div class="big">💜</div><h3>Thank you</h3>
+    <p>Your rating (${avg}/10) has been shared with your psychologist. Feedback like this is one of the best predictors of therapy working — it lets them adjust to what helps you.</p>
+    <button class="btn btn-teal" onclick="closeSRS()">Done</button></div>`;
 }
 </script>
 </body>
