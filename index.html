@@ -335,6 +335,24 @@
   .report .fact span:last-child{font-weight:700;text-align:right;color:var(--ink)}
   .report .quote{background:var(--neutral);border-radius:10px;padding:12px 14px;font-style:italic;font-size:13.5px;color:#3f5a60;line-height:1.55;margin:8px 0}
   .report .quote b{font-style:normal;color:var(--ink)}
+
+  /* ---------- Print / Save-as-PDF: show only the report ---------- */
+  @media print{
+    @page{ margin:14mm; }
+    body{ background:#fff!important; display:block!important; }
+    .device{ box-shadow:none!important; max-width:none!important; width:100%!important; min-height:0!important; border-radius:0!important; margin:0!important; overflow:visible!important; }
+    main{ overflow:visible!important; height:auto!important; padding:0!important; }
+    header.topbar, nav.bottom, #welcome, #crisis, .modal, .res-detail, .helpline{ display:none!important; }
+    /* within the Me screen, keep only the generated report */
+    #me > *:not(#summaryOut){ display:none!important; }
+    #summaryOut > .card{ border:none!important; box-shadow:none!important; padding:0!important; margin:0!important; }
+    #summaryOut .btn, #summaryOut > .card > p.sub{ display:none!important; }
+    .report{ border:none!important; padding:0!important; }
+    /* keep brand colours in the print/PDF */
+    .report, .report *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+    .report .fact{ break-inside:avoid; }
+    .report h4{ break-after:avoid; }
+  }
 </style>
 </head>
 <body>
@@ -813,8 +831,8 @@ function summaryReport(){
 
       <p class="disc">Collated automatically from your own entries. This is a factual summary, not a clinical interpretation. De-identified, and shared only if you choose.</p>
     </div>
-    <button class="btn btn-primary" style="margin-top:14px" onclick="window.print()">⬇ Download / Print PDF</button>
-    <p class="sub" style="text-align:center;margin-top:8px">You choose who sees this. Nothing is shared automatically.</p>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="window.print()">⬇ Download or print PDF</button>
+    <p class="sub" style="text-align:center;margin-top:8px">Opens your print dialog. Choose “Save as PDF” to download, or a printer to print. You choose who sees it.</p>
   </div>`;
 }
 
