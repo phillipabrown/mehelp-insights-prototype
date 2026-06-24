@@ -318,6 +318,23 @@
   .srs-q input[type=range]{width:100%;accent-color:var(--teal-01)}
   .srs-q .ends{display:flex;justify-content:space-between;font-size:11px;color:#8aa0a6;margin-top:4px}
   .srs-q .ends b{color:var(--teal-01);font-size:13px}
+
+  /* AI-collated summary report */
+  .collating{text-align:center;padding:30px 12px;color:#8aa0a6;font-size:14px;line-height:1.5}
+  .collating .spin{width:32px;height:32px;border:3px solid #e0e6e9;border-top-color:var(--teal-02);border-radius:50%;margin:0 auto 14px;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .report{background:#fff;border:1px solid #e7ebee;border-radius:14px;padding:20px 18px}
+  .report .rhead{border-bottom:2px solid var(--teal-03);padding-bottom:12px;margin-bottom:6px}
+  .report .rhead h3{font-size:17px}
+  .report .rhead .sub{font-size:12px;color:#8aa0a6;margin-top:3px}
+  .ai-chip{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--purple-cta);background:var(--purple-soft);padding:4px 9px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px;margin-top:10px}
+  .report h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#7d949a;margin:18px 0 8px;font-weight:700}
+  .report p{font-size:13.5px;line-height:1.6;color:#3f5a60}
+  .report .lead-p{font-size:14.5px;line-height:1.65;color:var(--ink);margin-top:14px}
+  .report .fact{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:7px 0;border-bottom:1px solid #f0f3f5}
+  .report .fact span:last-child{font-weight:700;text-align:right;color:var(--ink)}
+  .report .quote{background:var(--neutral);border-radius:10px;padding:12px 14px;font-style:italic;font-size:13.5px;color:#3f5a60;line-height:1.55;margin:8px 0}
+  .report .quote b{font-style:normal;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -734,28 +751,71 @@ let sumRange=30;
 function setRange(el,n){ document.querySelectorAll('#me .chip').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); sumRange=n; }
 function buildSummary(){
   const out=document.getElementById('summaryOut');
-  out.innerHTML=`<div class="card"><div class="summary-doc">
-    <div class="head"><div><h3>MeHelp Insights Summary</h3><div class="sub">Last ${sumRange} days · generated today</div></div><div class="deid">DE-IDENTIFIED</div></div>
-    <div class="kvs">
-      <div class="kv"><div class="k">Avg mood</div><div class="v">6.0 / 10</div></div>
-      <div class="kv"><div class="k">Avg sleep</div><div class="v">6.4 h</div></div>
-      <div class="kv"><div class="k">Avg stress</div><div class="v">5.1 / 10</div></div>
-      <div class="kv"><div class="k">Days moved</div><div class="v">8 / ${sumRange}</div></div>
-    </div>
-    <div class="sub" style="font-weight:700;color:var(--ink);margin-bottom:6px">Key patterns</div>
-    <ul class="pat-list">
-      <li>Mood consistently lowest on Monday mornings (~2 pts below average).</li>
-      <li>Stress ~3 pts higher on nights with under 6 hours sleep.</li>
-      <li>Mood higher on the 3 days movement was logged.</li>
-      <li>Gradual mood decline tracking shorter daylight hours.</li>
-    </ul>
-    <div class="sub" style="font-weight:700;color:var(--ink);margin:12px 0 6px">Client notes (selected)</div>
-    <p class="sub" style="color:var(--ink);font-style:italic">"Work deadlines piling up. Sleeping badly Sun–Mon."</p>
-  </div>
-  <button class="btn btn-primary" style="margin-top:14px" onclick="window.print()">⬇ Download / Print PDF</button>
-  <p class="sub" style="text-align:center;margin-top:8px">You choose who sees this. Nothing is shared automatically.</p>
-  </div>`;
+  out.innerHTML=`<div class="card"><div class="collating"><div class="spin"></div>Collating your summary…<br><span style="font-size:12px">Pulling together your check-ins, wellbeing checks, notes and more into one easy read.</span></div></div>`;
   out.scrollIntoView({behavior:'smooth'});
+  setTimeout(()=>{ out.innerHTML=summaryReport(); out.scrollIntoView({behavior:'smooth'}); }, 1400);
+}
+function summaryReport(){
+  const f=sumRange/14;
+  const dl=Math.round(12*f);
+  const avgMood=round1(mean(mood)), moodMin=Math.min(...mood), moodMax=Math.max(...mood);
+  const avgSleep=round1(mean(sleep)), sMin=Math.min(...sleep), sMax=Math.max(...sleep);
+  const loN=Math.round(sleep.filter(s=>s<6).length*f);
+  const avgStress=round1(mean(stress));
+  const movedDisp=Math.round(moved.reduce((a,b)=>a+b,0)*f);
+  const k10n = sumRange>=56?4 : sumRange>=28?2 : 1;
+  const k10show = k10History.slice(-k10n).map(x=>x.score).join(', ');
+  const last=k10History[k10History.length-1].score, lb=k10Band(last);
+  return `<div class="card">
+    <div class="report">
+      <div class="rhead"><h3>Your MeHelp Insights summary</h3>
+        <div class="sub">Last ${sumRange} days · generated today · de-identified</div>
+        <span class="ai-chip">✨ AI-collated · facts only, no interpretation</span></div>
+
+      <p class="lead-p">Over the last ${sumRange} days, you completed a check-in on ${dl} of them. Your mood averaged ${avgMood} out of 10 (ranging from ${moodMin} to ${moodMax}). Sleep averaged ${avgSleep} hours a night, stress averaged ${avgStress} out of 10, and you recorded movement on ${movedDisp} days. You also completed ${k10History.length} fortnightly wellbeing checks.</p>
+
+      <h4>Mood and feelings</h4>
+      <div class="fact"><span>Average mood</span><span>${avgMood} / 10</span></div>
+      <div class="fact"><span>Range</span><span>${moodMin} to ${moodMax}</span></div>
+      <div class="fact"><span>Feelings selected most often</span><span>Tired, Overwhelmed, Content</span></div>
+
+      <h4>Sleep</h4>
+      <div class="fact"><span>Average</span><span>${avgSleep} hours</span></div>
+      <div class="fact"><span>Range</span><span>${sMin} to ${sMax} hours</span></div>
+      <div class="fact"><span>Nights under 6 hours</span><span>${loN}</span></div>
+
+      <h4>Movement and daily functioning</h4>
+      <div class="fact"><span>Days movement recorded</span><span>${movedDisp} of ${sumRange}</span></div>
+      <div class="fact"><span>Ticked most often</span><span>Ate well, Showered, Worked</span></div>
+
+      <h4>Stress and context</h4>
+      <div class="fact"><span>Average stress</span><span>${avgStress} / 10</span></div>
+      <div class="fact"><span>Tags recorded most often</span><span>Overworked, Caffeine, Social</span></div>
+
+      <h4>Wellbeing checks (K10)</h4>
+      <div class="fact"><span>Scores this period</span><span>${k10show}</span></div>
+      <div class="fact"><span>Most recent</span><span>${last} · ${lb.t}</span></div>
+
+      <h4>Weather and daylight</h4>
+      <div class="fact"><span>Daylight over the period</span><span>10h 30m → 9h 12m</span></div>
+      <div class="fact"><span>Location</span><span>Melbourne</span></div>
+
+      <h4>In your own words</h4>
+      <div class="quote"><b>Voice note (mixed tone):</b> “Work has been full-on this week and I haven’t slept well, but I did get out for a walk on the weekend which really helped.”</div>
+      <div class="quote"><b>Typed note:</b> “Work deadlines piling up. Sleeping badly Sun–Mon.”</div>
+
+      <h4>Resources used</h4>
+      <div class="fact"><span>Completed</span><span>Intro to ACT</span></div>
+      <div class="fact"><span>In progress</span><span>7 days to better sleep</span></div>
+
+      <h4>Between-session goal</h4>
+      <div class="fact"><span>“Sleep by 11pm”</span><span>Met 5 of 7 nights</span></div>
+
+      <p class="disc">Collated automatically from your own entries. This is a factual summary, not a clinical interpretation. De-identified, and shared only if you choose.</p>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="window.print()">⬇ Download / Print PDF</button>
+    <p class="sub" style="text-align:center;margin-top:8px">You choose who sees this. Nothing is shared automatically.</p>
+  </div>`;
 }
 
 /* ---------------- Crisis ---------------- */
