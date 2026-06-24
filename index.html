@@ -335,6 +335,19 @@
   .report .fact span:last-child{font-weight:700;text-align:right;color:var(--ink)}
   .report .quote{background:var(--neutral);border-radius:10px;padding:12px 14px;font-style:italic;font-size:13.5px;color:#3f5a60;line-height:1.55;margin:8px 0}
   .report .quote b{font-style:normal;color:var(--ink)}
+  .report .block-warn{background:#fff8f0;border:1px solid #ffe2b8;border-radius:12px;padding:2px 14px 12px;margin-top:18px}
+  .report .block-warn h4{color:#a9760a;margin-top:14px}
+  .report .block-warn .fact{border-bottom-color:#f3e6cf}
+  .report .block-good{background:#eef8f3;border:1px solid #cdeadd;border-radius:12px;padding:2px 14px 12px;margin-top:18px}
+  .report .block-good h4{color:#0a7d5a;margin-top:14px}
+  .report .block-good .fact{border-bottom-color:#dceee6}
+
+  /* Resource helpfulness */
+  .helpful{background:var(--neutral);border-radius:12px;padding:16px 14px;margin-top:24px;text-align:center}
+  .helpful > b{display:block;margin-bottom:12px;font-size:14.5px}
+  .hb-btns{display:flex;gap:10px}
+  .hb-btns .btn{flex:1}
+  .helpful.done{font-size:13px;color:#3f5a60;line-height:1.55}
 
   /* ---------- Print / Save-as-PDF: show only the report ---------- */
   @media print{
@@ -775,40 +788,66 @@ function buildSummary(){
 }
 function summaryReport(){
   const f=sumRange/14;
-  const dl=Math.round(12*f);
+  const dl=Math.round(12*f), notLogged=Math.max(sumRange-dl,0);
   const avgMood=round1(mean(mood)), moodMin=Math.min(...mood), moodMax=Math.max(...mood);
+  const lowDays=Math.round(mood.filter(m=>m<=4).length*f);
+  const lowishDays=Math.round(mood.filter(m=>m<=5).length*f);
   const avgSleep=round1(mean(sleep)), sMin=Math.min(...sleep), sMax=Math.max(...sleep);
   const loN=Math.round(sleep.filter(s=>s<6).length*f);
-  const avgStress=round1(mean(stress));
-  const movedDisp=Math.round(moved.reduce((a,b)=>a+b,0)*f);
+  const avgStress=round1(mean(stress)), stressMax=Math.max(...stress);
+  const hiStress=Math.round(stress.filter(s=>s>=7).length*f);
+  const movedDisp=Math.round(moved.reduce((a,b)=>a+b,0)*f), noMove=sumRange-movedDisp;
+  const noLeave=Math.round(4*f), noEat=Math.round(3*f), noSocial=Math.round(5*f);
+  const alcoholD=Math.round(3*f), poorDiet=Math.round(4*f), unwellD=Math.round(2*f);
   const k10n = sumRange>=56?4 : sumRange>=28?2 : 1;
   const k10show = k10History.slice(-k10n).map(x=>x.score).join(', ');
   const last=k10History[k10History.length-1].score, lb=k10Band(last);
+  const helped=Object.entries(resourceFeedback).filter(([,v])=>v==='up').map(([id])=>(RES.find(x=>x.id===id)||{}).title).filter(Boolean).join(', ')||'None marked yet';
+  const notHelped=Object.entries(resourceFeedback).filter(([,v])=>v==='down').map(([id])=>(RES.find(x=>x.id===id)||{}).title).filter(Boolean).join(', ')||'None marked yet';
   return `<div class="card">
     <div class="report">
       <div class="rhead"><h3>Your MeHelp Insights summary</h3>
         <div class="sub">Last ${sumRange} days · generated today · de-identified</div>
         <span class="ai-chip">✨ AI-collated · facts only, no interpretation</span></div>
 
-      <p class="lead-p">Over the last ${sumRange} days, you completed a check-in on ${dl} of them. Your mood averaged ${avgMood} out of 10 (ranging from ${moodMin} to ${moodMax}). Sleep averaged ${avgSleep} hours a night, stress averaged ${avgStress} out of 10, and you recorded movement on ${movedDisp} days. You also completed ${k10History.length} fortnightly wellbeing checks.</p>
+      <p class="lead-p">Over the last ${sumRange} days, you completed a check-in on ${dl} of them (no check-in on ${notLogged}). Your mood averaged ${avgMood} out of 10, ranging from ${moodMin} to ${moodMax}, and was 4 or below on ${lowDays} days. Sleep averaged ${avgSleep} hours, with ${loN} nights under 6 hours. Stress averaged ${avgStress} out of 10 and reached ${stressMax} on ${hiStress} days. You recorded movement on ${movedDisp} days and completed ${k10History.length} wellbeing checks.</p>
+
+      <div class="block-warn">
+        <h4>What's been harder</h4>
+        <div class="fact"><span>Days mood was 4 or below</span><span>${lowDays} of ${sumRange}</span></div>
+        <div class="fact"><span>Days mood was 5 or below</span><span>${lowishDays} of ${sumRange}</span></div>
+        <div class="fact"><span>Lowest mood logged</span><span>${moodMin} / 10</span></div>
+        <div class="fact"><span>Days stress was 7 or higher</span><span>${hiStress}</span></div>
+        <div class="fact"><span>Nights under 6 hours sleep</span><span>${loN} (shortest ${sMin}h)</span></div>
+        <div class="fact"><span>Days without movement</span><span>${noMove} of ${sumRange}</span></div>
+        <div class="fact"><span>Days without a check-in</span><span>${notLogged}</span></div>
+      </div>
+
+      <div class="block-warn">
+        <h4>Daily functioning gaps</h4>
+        <div class="fact"><span>Days didn't leave the house</span><span>${noLeave}</span></div>
+        <div class="fact"><span>Days didn't eat well</span><span>${noEat}</span></div>
+        <div class="fact"><span>Days with no social contact</span><span>${noSocial}</span></div>
+      </div>
 
       <h4>Mood and feelings</h4>
       <div class="fact"><span>Average mood</span><span>${avgMood} / 10</span></div>
       <div class="fact"><span>Range</span><span>${moodMin} to ${moodMax}</span></div>
-      <div class="fact"><span>Feelings selected most often</span><span>Tired, Overwhelmed, Content</span></div>
+      <div class="fact"><span>Difficult feelings logged most</span><span>Overwhelmed, Anxious, Drained</span></div>
+      <div class="fact"><span>Lighter feelings logged</span><span>Content, Calm</span></div>
 
       <h4>Sleep</h4>
       <div class="fact"><span>Average</span><span>${avgSleep} hours</span></div>
       <div class="fact"><span>Range</span><span>${sMin} to ${sMax} hours</span></div>
       <div class="fact"><span>Nights under 6 hours</span><span>${loN}</span></div>
 
-      <h4>Movement and daily functioning</h4>
-      <div class="fact"><span>Days movement recorded</span><span>${movedDisp} of ${sumRange}</span></div>
-      <div class="fact"><span>Ticked most often</span><span>Ate well, Showered, Worked</span></div>
-
       <h4>Stress and context</h4>
       <div class="fact"><span>Average stress</span><span>${avgStress} / 10</span></div>
-      <div class="fact"><span>Tags recorded most often</span><span>Overworked, Caffeine, Social</span></div>
+      <div class="fact"><span>Highest stress</span><span>${stressMax} / 10</span></div>
+      <div class="fact"><span>Most common stress trigger</span><span>Work</span></div>
+      <div class="fact"><span>Alcohol logged</span><span>${alcoholD} days</span></div>
+      <div class="fact"><span>Poor diet logged</span><span>${poorDiet} days</span></div>
+      <div class="fact"><span>Felt unwell</span><span>${unwellD} days</span></div>
 
       <h4>Wellbeing checks (K10)</h4>
       <div class="fact"><span>Scores this period</span><span>${k10show}</span></div>
@@ -822,12 +861,13 @@ function summaryReport(){
       <div class="quote"><b>Voice note (mixed tone):</b> “Work has been full-on this week and I haven’t slept well, but I did get out for a walk on the weekend which really helped.”</div>
       <div class="quote"><b>Typed note:</b> “Work deadlines piling up. Sleeping badly Sun–Mon.”</div>
 
-      <h4>Resources used</h4>
-      <div class="fact"><span>Completed</span><span>Intro to ACT</span></div>
+      <h4>Resources and what helped</h4>
+      <div class="fact"><span>Found helpful</span><span>${helped}</span></div>
+      <div class="fact"><span>Didn't find helpful</span><span>${notHelped}</span></div>
       <div class="fact"><span>In progress</span><span>7 days to better sleep</span></div>
 
       <h4>Between-session goal</h4>
-      <div class="fact"><span>“Sleep by 11pm”</span><span>Met 5 of 7 nights</span></div>
+      <div class="fact"><span>“Sleep by 11pm”</span><span>Met 5 of 7 nights (missed 2)</span></div>
 
       <p class="disc">Collated automatically from your own entries. This is a factual summary, not a clinical interpretation. De-identified, and shared only if you choose.</p>
     </div>
@@ -980,11 +1020,22 @@ function openRes(id){
   document.getElementById('rdMeta').innerHTML=`${r.cats.map(c=>`<span class="rd-tag">${c}</span>`).join('')}<span class="rd-tag alt">${r.meta}</span>`;
   document.getElementById('rdTitle').textContent=r.title;
   document.getElementById('rdSub').textContent=r.tagline||'';
-  document.getElementById('rdBody').innerHTML=r.body(r);
+  currentResId=r.id;
+  document.getElementById('rdBody').innerHTML=r.body(r)+`<div id="helpfulMount">${helpfulWidget(r.id)}</div>`;
   const d=document.getElementById('resDetail'); d.classList.add('active'); d.scrollTop=0;
   if(r.init) r.init();
 }
 function closeRes(){ stopBreath(); document.getElementById('resDetail').classList.remove('active'); }
+
+/* ---- Resource helpfulness ("did this help?") ---- */
+let currentResId=null;
+const resourceFeedback={'intro-act':'up','box-breathing':'up','worry-time':'down'};
+function helpfulWidget(id){
+  const fb=resourceFeedback[id];
+  if(fb) return `<div class="helpful done">You marked this ${fb==='up'?'<b style="color:var(--teal-01)">helpful 👍</b>':'<b style="color:#b9772a">not for you 👎</b>'}. Thanks — noting what helps, and what doesn’t, lets your psychologist suggest better next time.<br><button class="chip" style="margin-top:12px" onclick="rateRes('${id}',null)">Change my answer</button></div>`;
+  return `<div class="helpful"><b>Did you find this helpful?</b><div class="hb-btns"><button class="btn btn-ghost" onclick="rateRes('${id}','up')">👍 Helpful</button><button class="btn btn-ghost" onclick="rateRes('${id}','down')">👎 Not really</button></div></div>`;
+}
+function rateRes(id,val){ if(val===null) delete resourceFeedback[id]; else resourceFeedback[id]=val; const m=document.getElementById('helpfulMount'); if(m) m.innerHTML=helpfulWidget(id); }
 
 /* ---- Box breathing engine ---- */
 let breathTimer=null, breathRunning=false, breathPhase=0, breathCycles=0;
